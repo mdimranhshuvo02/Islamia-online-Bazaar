@@ -203,21 +203,21 @@ export async function generateMetadata(): Promise<Metadata> {
       appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: settings.brandName || "Hill Victor",
+        title: settings.brandName || "Islamia Online Bazaar",
       },
       formatDetection: {
         telephone: false,
       },
       openGraph: {
-        title: settings.metaTitle || settings.brandName || "Hill Victor",
+        title: settings.metaTitle || settings.brandName || "Islamia Online Bazaar",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
         url: baseUrl,
-        siteName: settings.brandName || "Hill Victor",
+        siteName: settings.brandName || "Islamia Online Bazaar",
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: settings.metaTitle || settings.brandName || "Hill Victor",
+        title: settings.metaTitle || settings.brandName || "Islamia Online Bazaar",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
       },
       verification: {
@@ -234,7 +234,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (error) {
     return {
-      title: "Hill Victor",
+      title: "Islamia Online Bazaar",
       description: "Your ultimate destination for quality products.",
     };
   }

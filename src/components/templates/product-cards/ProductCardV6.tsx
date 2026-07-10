@@ -42,9 +42,10 @@ interface ProductCardProps {
   };
   isFlashSale?: boolean;
   priority?: boolean;
+  layout?: string;
 }
 
-export default function ProductCardV6({ product: initialProduct, isFlashSale, priority }: ProductCardProps) {
+export default function ProductCardV6({ product: initialProduct, isFlashSale, priority, layout }: ProductCardProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -174,10 +175,10 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
   const discount = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0;
 
   return (
-    <div className="group relative flex flex-col font-jost animate-in fade-in duration-700">
+    <div className={`group relative flex flex-col font-jost animate-in fade-in duration-700 ${layout === 'v3' ? 'lg:rounded-sm lg:overflow-hidden lg:border lg:border-border/40 lg:pb-3 lg:bg-card' : ''}`}>
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-muted rounded-none">
-        <Link href={`/product/${product.slug}`} className="block h-full w-full">
+      <div className={`relative aspect-square overflow-hidden bg-muted ${layout === 'v3' ? 'lg:rounded-t-sm' : 'rounded-none'}`}>
+        <Link href={`/product/${product.slug}`} className="relative block h-full w-full">
           <Image
             src={product.images?.[0] || '/placeholder.png'}
             alt={product.name}
@@ -251,7 +252,7 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
         <div className="min-h-[5.25rem] sm:min-h-[4.5rem] flex flex-col justify-center">
           <Link
             href={`/product/${product.slug}`}
-            className="text-sm sm:text-base font-semibold text-foreground hover:text-primary transition-colors leading-tight px-2 line-clamp-3 sm:line-clamp-2"
+            className={`text-sm ${layout === 'v3' ? 'lg:text-xs' : 'sm:text-base'} font-semibold text-foreground hover:text-primary transition-colors leading-tight px-2 line-clamp-3 sm:line-clamp-2`}
             title={product.name}
           >
             {product.name}
@@ -259,11 +260,11 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
           <div className="flex items-center justify-center gap-2 mt-2">
             {product.salePrice ? (
               <>
-                <span className="text-foreground font-black text-sm sm:text-[16px]">৳{Math.round(product.salePrice)}</span>
-                <span className="text-muted-foreground line-through text-[11px] sm:text-[13px] font-normal">৳{Math.round(product.price)}</span>
+                <span className={`text-foreground font-black text-sm ${layout === 'v3' ? 'lg:text-[14px]' : 'sm:text-[16px]'}`}>৳{Math.round(product.salePrice)}</span>
+                <span className={`text-muted-foreground line-through text-[11px] ${layout === 'v3' ? 'lg:text-[11px]' : 'sm:text-[13px]'} font-normal`}>৳{Math.round(product.price)}</span>
               </>
             ) : (
-              <span className="text-foreground font-black text-sm sm:text-[16px]">৳{Math.round(product.price)}</span>
+              <span className={`text-foreground font-black text-sm ${layout === 'v3' ? 'lg:text-[14px]' : 'sm:text-[16px]'}`}>৳{Math.round(product.price)}</span>
             )}
           </div>
         </div>
@@ -273,14 +274,14 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-[10px] sm:text-xs h-11 sm:h-10 transition-all active:scale-95 py-2"
+            className={`flex-1 rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 transition-all active:scale-95 py-2`}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> Cart
           </Button>
           <Button
             size="sm"
-            className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] sm:text-xs h-11 sm:h-10 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2"
+            className={`flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] ${layout === 'v3' ? 'lg:text-[10px] lg:h-9' : 'sm:text-xs sm:h-10'} h-11 shadow-lg shadow-primary/20 transition-all active:scale-95 py-2`}
             onClick={handleBuyNow}
           >
             Buy Now

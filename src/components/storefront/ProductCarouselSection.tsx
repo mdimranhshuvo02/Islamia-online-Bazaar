@@ -18,6 +18,7 @@ interface ProductCarouselSectionProps {
   saleEndTimestamp?: number | string;
   bgColor?: string;
   cardStyle?: string;
+  layout?: string;
 }
 
 export function ProductCarouselSection({
@@ -27,7 +28,8 @@ export function ProductCarouselSection({
   viewAllLink,
   isFlashSale = false,
   bgColor = "bg-background",
-  cardStyle = 'v1'
+  cardStyle = 'v1',
+  layout
 }: ProductCarouselSectionProps) {
 
   // Initialize Embla Carousel with Autoplay
@@ -51,11 +53,11 @@ export function ProductCarouselSection({
         <div className="flex flex-row items-center justify-between mb-8 md:mb-10 gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-black tracking-tighter md:text-4xl text-foreground">
+              <h2 className="text-xl md:text-4xl font-black tracking-tighter text-foreground">
                 {title}
               </h2>
               {isFlashSale && (
-                <Badge variant="default" className="bg-primary text-primary-foreground animate-pulse border-none rounded-full flex items-center gap-1.5 px-3">
+                <Badge variant="default" className="hidden sm:flex bg-primary text-primary-foreground animate-pulse border-none rounded-full items-center gap-1.5 px-3">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
@@ -84,7 +86,7 @@ export function ProductCarouselSection({
                   key={product._id}
                   className="flex-[0_0_42%] min-w-0 pl-4 md:flex-[0_0_33.33%] lg:flex-[0_0_25%]"
                 >
-                  <ProductCard product={product} isFlashSale={isFlashSale} style={cardStyle} />
+                  <ProductCard product={product} isFlashSale={isFlashSale} style={cardStyle} layout={layout} />
                 </div>
               ))}
             </div>

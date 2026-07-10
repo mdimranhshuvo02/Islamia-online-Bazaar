@@ -5,7 +5,7 @@ import { BlogListingSelector } from '@/components/templates/ServerRegistry';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
-  const brandName = settings?.brandName || 'Hill Victor';
+  const brandName = settings?.brandName || 'Islamia Online Bazaar';
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const headersList = await headers();
   const hostname = headersList.get('host') || 'localhost';

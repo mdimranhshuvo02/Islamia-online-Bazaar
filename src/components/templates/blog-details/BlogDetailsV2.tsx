@@ -74,7 +74,7 @@ export default function BlogDetailsV2({ blog, readingTime }: BlogDetailsV2Props)
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Words by</span>
-              <span className="text-sm font-bold">Hill Victor Editorial</span>
+              <span className="text-sm font-bold">Islamia Online Bazaar Editorial</span>
             </div>
           </div>
         </header>

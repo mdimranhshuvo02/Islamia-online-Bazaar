@@ -1,5 +1,5 @@
 export const productTitles = [
-  "HillVictor Wellness Pro",
+  "IslamiaOnlineBazaar Wellness Pro",
   "Urban Velocity Sneakers",
   "CloudWalk Elite Performance",
   "Stealth Neo-Classic Lows",

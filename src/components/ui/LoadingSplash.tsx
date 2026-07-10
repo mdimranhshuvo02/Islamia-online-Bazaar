@@ -12,7 +12,7 @@ export default function LoadingSplash({
   brandName?: string;
 }) {
   const defaultWords = ["Quality", "Trust", "Shop", "Value"];
-  const words = brandName ? [brandName, ...defaultWords] : ["Hill Victor", ...defaultWords];
+  const words = brandName ? [brandName, ...defaultWords] : ["Islamia Online Bazaar", ...defaultWords];
   const [index, setIndex] = useState(0);
 
   useEffect(() => {

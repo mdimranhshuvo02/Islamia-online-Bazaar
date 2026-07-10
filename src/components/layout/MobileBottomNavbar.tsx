@@ -89,8 +89,9 @@ export function MobileBottomNavbar() {
 
           {/* Cart Item */}
           <CartDrawer>
-            <button 
+            <div 
               aria-label="Open cart drawer"
+              role="button"
               className="flex flex-col items-center justify-center gap-1 min-w-[64px] text-muted-foreground relative cursor-pointer active:scale-95 transition-transform"
             >
               <div className="relative">
@@ -101,7 +102,7 @@ export function MobileBottomNavbar() {
                   </span>
                 )}
               </div>
-            </button>
+            </div>
           </CartDrawer>
 
           {/* Search Item */}

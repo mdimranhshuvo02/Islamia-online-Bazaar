@@ -16,7 +16,7 @@ if (fs.existsSync(envPath)) {
 
 if (!mongodbUri) {
   // Fallback if env file doesn't parse correctly
-  mongodbUri = 'mongodb+srv://HillVictor:S4Epscw0SOkd5ZtG@cluster0.e5n1hnl.mongodb.net/HillVictor';
+  mongodbUri = 'mongodb+srv://IslamiaOnlineBazaar:S4Epscw0SOkd5ZtG@cluster0.e5n1hnl.mongodb.net/IslamiaOnlineBazaar';
 }
 
 console.log('Connecting to MongoDB...');
@@ -84,7 +84,7 @@ const banners = [
     isActive: true,
   },
   {
-    title: 'The HillVictor Collection',
+    title: 'The IslamiaOnlineBazaar Collection',
     image: '/assets/images/Banner/gentsity-exclusive-collection-banner.webp',
     link: '/shop',
     primaryBtnText: 'Shop Collection',
@@ -102,7 +102,7 @@ async function seed() {
       await mongoose.connect(mongodbUri);
     } catch (connErr) {
       console.log('SRV connection failed, trying direct connection fallback...');
-      const directUri = 'mongodb://HillVictor:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/HillVictor?ssl=true&authSource=admin';
+      const directUri = 'mongodb://IslamiaOnlineBazaar:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/IslamiaOnlineBazaar?ssl=true&authSource=admin';
       await mongoose.connect(directUri);
     }
     console.log('Connected to MongoDB successfully.');

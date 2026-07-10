@@ -167,7 +167,7 @@ export default function ProductCardV2({ product: initialProduct, isFlashSale }: 
     >
       {/* Image Section */}
       <div className="relative aspect-[4/5] overflow-hidden bg-muted/20">
-        <Link href={`/product/${product.slug}`} className="block h-full w-full">
+        <Link href={`/product/${product.slug}`} className="relative block h-full w-full">
           <Image
             src={product.images?.[0] || '/placeholder.png'}
             alt={product.name}

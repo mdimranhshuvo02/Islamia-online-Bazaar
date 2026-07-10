@@ -23,11 +23,12 @@ interface Banner {
 
 interface HeroSliderProps {
   banners: Banner[];
+  layout?: string;
 }
 
 const AUTOPLAY_DELAY = 5500;
 
-export default function HeroV1({ banners }: HeroSliderProps) {
+export default function HeroV1({ banners, layout }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const slides = banners && banners.length > 0 ? banners : null;
 
@@ -73,7 +74,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
   // Fallback if no banners
   if (!slides) {
     return (
-      <div className="relative w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[650px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className={`relative w-full h-[210px] sm:h-[450px] md:h-[550px] ${layout === 'v3' ? 'lg:h-auto lg:aspect-[1140/380] lg:rounded-sm' : 'lg:h-[650px]'} flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800`}>
         <div className="text-center px-6 max-w-2xl relative z-10">
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">
             Quality Products,<br />Unbeatable Prices
@@ -101,7 +102,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
   }
 
   return (
-    <section className="relative w-full h-[210px] sm:h-[480px] md:h-[550px] lg:h-[650px] overflow-hidden bg-transparent group/slider text-white">
+    <section className={`relative w-full h-[210px] sm:h-[480px] md:h-[550px] ${layout === 'v3' ? 'lg:h-auto lg:aspect-[1140/380] lg:rounded-xl' : 'lg:h-[650px]'} overflow-hidden bg-transparent group/slider text-white`}>
       {/* Embla Viewport */}
       <div className="h-full w-full overflow-hidden" ref={emblaRef}>
         <div className="flex h-full w-full">
@@ -120,7 +121,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
                     src={banner.image || '/placeholder-banner.jpg'}
                     alt={banner.title || 'Hero Banner'}
                     fill
-                    className={`object-cover object-top transition-transform duration-[8000ms] ease-linear ${isActive ? 'scale-110' : 'scale-100'}`}
+                    className={`object-cover object-center transition-transform duration-[8000ms] ease-linear ${isActive ? 'scale-110' : 'scale-100'}`}
                     priority={index === 0}
                     fetchPriority={index === 0 ? "high" : undefined}
                     sizes="100vw"
@@ -131,7 +132,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
 
                 {/* Content */}
-                <div className="absolute inset-0 flex items-end pb-10 sm:pb-20 lg:pb-32 z-20 px-4 sm:px-12 md:px-20 lg:px-32">
+                <div className={`absolute inset-0 flex items-end pb-10 sm:pb-20 ${layout === 'v3' ? 'lg:pb-12' : 'lg:pb-32'} z-20 px-4 sm:px-12 md:px-20 ${layout === 'v3' ? 'lg:px-16' : 'lg:px-32'}`}>
                   <div className="w-full max-w-[95%] sm:max-w-[60%] lg:max-w-[50%] flex flex-col items-start text-left">
                     <AnimatePresence mode="wait">
                       {isActive && (
@@ -145,21 +146,11 @@ export default function HeroV1({ banners }: HeroSliderProps) {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-                            className={`text-base sm:text-4xl md:text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight drop-shadow-2xl ${banner.subtitle ? 'mb-1 sm:mb-6' : 'mb-5 sm:mb-8'}`}
+                            className={`text-base sm:text-4xl md:text-5xl ${layout === 'v3' ? 'lg:text-4xl' : 'lg:text-7xl'} font-black text-white leading-[1.1] tracking-tight drop-shadow-2xl ${banner.subtitle ? (layout === 'v3' ? 'mb-1 sm:mb-6 lg:mb-2' : 'mb-1 sm:mb-6') : (layout === 'v3' ? 'mb-5 sm:mb-8 lg:mb-3' : 'mb-5 sm:mb-8')}`}
                           >
                             {banner.title}
                           </motion.h1>
 
-                          {banner.subtitle && (
-                            <motion.p
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.7, delay: 0.45, ease: "easeOut" }}
-                              className="text-[9px] sm:text-sm md:text-lg lg:text-xl text-white/80 max-w-[180px] sm:max-w-md md:max-w-lg mb-3 sm:mb-10 leading-snug drop-shadow-sm"
-                            >
-                              {banner.subtitle}
-                            </motion.p>
-                          )}
 
                           <motion.div
                             initial={{ opacity: 0, y: 5 }}
@@ -169,7 +160,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
                           >
                             <Link
                               href={primaryHref}
-                              className="flex items-center gap-1 px-3 py-1 sm:px-10 sm:py-4 bg-primary text-white font-bold rounded-full hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all text-[8px] sm:text-base shadow-2xl"
+                              className={`flex items-center gap-1 px-3 py-1 sm:px-10 sm:py-4 ${layout === 'v3' ? 'lg:px-6 lg:py-2.5 lg:text-xs' : ''} bg-primary text-white font-bold rounded-full hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all text-[8px] sm:text-base shadow-2xl`}
                             >
                               <span>{primaryText}</span>
                               <ArrowRight className="w-2 h-2 sm:w-4 sm:h-4" />
@@ -178,7 +169,7 @@ export default function HeroV1({ banners }: HeroSliderProps) {
                             {secondaryText && (
                               <Link
                                 href={secondaryHref}
-                                className="px-3 py-1 sm:px-10 sm:py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full hover:bg-white/20 hover:border-white/40 transition-all text-[8px] sm:text-base shadow-sm"
+                                className={`px-3 py-1 sm:px-10 sm:py-4 ${layout === 'v3' ? 'lg:px-6 lg:py-2.5 lg:text-xs' : ''} bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full hover:bg-white/20 hover:border-white/40 transition-all text-[8px] sm:text-base shadow-sm`}
                               >
                                 {secondaryText}
                               </Link>
@@ -216,25 +207,27 @@ export default function HeroV1({ banners }: HeroSliderProps) {
           </button>
 
           {/* Custom Pagination Container */}
-          <div className="absolute bottom-2.5 sm:bottom-12 left-0 w-full z-30 hidden sm:flex justify-center px-4 sm:px-10">
-            <div className="flex items-center gap-1 sm:gap-2">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => scrollTo(index)}
-                  className="transition-all duration-300 cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
-                  aria-label={`Go to slide ${index + 1}`}
-                >
-                  <span
-                    className={`transition-all duration-300 rounded-full h-1.5 sm:h-2 ${index === activeIndex
-                      ? "w-4 sm:w-8 bg-primary"
-                      : "w-1.5 sm:w-2 bg-white/30"
-                      }`}
-                  />
-                </button>
-              ))}
+          {layout !== 'v3' && (
+            <div className="absolute bottom-2.5 sm:bottom-12 left-0 w-full z-30 hidden sm:flex justify-center px-4 sm:px-10">
+              <div className="flex items-center gap-1 sm:gap-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => scrollTo(index)}
+                    className="transition-all duration-300 cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+                    aria-label={`Go to slide ${index + 1}`}
+                  >
+                    <span
+                      className={`transition-all duration-300 rounded-full h-1.5 sm:h-2 ${index === activeIndex
+                        ? "w-4 sm:w-8 bg-primary"
+                        : "w-1.5 sm:w-2 bg-white/30"
+                        }`}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Progress Bar */}
           <div className="absolute bottom-0 left-0 w-full h-[1px] sm:h-[3px] z-40 bg-white/5">

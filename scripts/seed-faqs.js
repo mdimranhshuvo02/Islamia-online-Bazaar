@@ -15,7 +15,7 @@ if (fs.existsSync(envPath)) {
 }
 
 if (!mongodbUri) {
-  mongodbUri = 'mongodb+srv://HillVictor:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/HillVictor';
+  mongodbUri = 'mongodb+srv://IslamiaOnlineBazaar:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/IslamiaOnlineBazaar';
 }
 
 console.log('Connecting to MongoDB...');
@@ -34,8 +34,8 @@ const FAQ = mongoose.models.FAQ || mongoose.model('FAQ', FAQSchema);
 
 const faqs = [
   {
-    question: 'What type of products does HillVictor offer?',
-    answer: 'HillVictor offers premium and comfortable menswear. Our collection includes high-quality T-shirts, Polo Shirts, Casual & Formal Shirts, Hoodies, and comfortable Pants.',
+    question: 'What type of products does IslamiaOnlineBazaar offer?',
+    answer: 'IslamiaOnlineBazaar offers premium and comfortable menswear. Our collection includes high-quality T-shirts, Polo Shirts, Casual & Formal Shirts, Hoodies, and comfortable Pants.',
     order: 1,
     isActive: true,
   },
@@ -71,7 +71,7 @@ async function seed() {
       await mongoose.connect(mongodbUri);
     } catch (connErr) {
       console.log('SRV connection failed, trying direct connection fallback...');
-      const directUri = 'mongodb://HillVictor:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/HillVictor?ssl=true&authSource=admin';
+      const directUri = 'mongodb://IslamiaOnlineBazaar:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/IslamiaOnlineBazaar?ssl=true&authSource=admin';
       await mongoose.connect(directUri);
     }
     console.log('Connected to MongoDB successfully.');

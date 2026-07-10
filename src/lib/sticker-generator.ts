@@ -69,7 +69,7 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
   const blackRGB: [number, number, number] = [0, 0, 0];
   const redRGB: [number, number, number] = [220, 38, 38];
 
-  const storeName: string = settings?.siteName || settings?.brandName || 'Hill Victor SHOP';
+  const storeName: string = settings?.siteName || settings?.brandName || 'Islamia Online Bazaar SHOP';
   const orderId = String(order.shortId || order._id || '').slice(-8).toUpperCase();
   const createdAt = order.createdAt ? new Date(order.createdAt) : null;
   const dateStr = createdAt && isValid(createdAt) ? format(createdAt, 'dd/MM/yyyy') : 'N/A';

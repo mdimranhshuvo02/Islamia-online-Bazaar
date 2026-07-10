@@ -6,8 +6,8 @@ import GlobalSettings from '@/models/GlobalSettings';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'About Us | Hill Victor',
-  description: 'Hill Victor - Premium menswear brand in Bangladesh. Explore our high-quality collection of T-shirts, Polo Shirts, Casual & Formal Shirts, and Hoodies designed for modern comfort.',
+  title: 'About Us | Islamia Online Bazaar',
+  description: 'Islamia Online Bazaar - Premium menswear brand in Bangladesh. Explore our high-quality collection of T-shirts, Polo Shirts, Casual & Formal Shirts, and Hoodies designed for modern comfort.',
 };
 
 async function getSettings() {
@@ -16,9 +16,9 @@ async function getSettings() {
     const settings = await GlobalSettings.findOne().lean();
     if (!settings) {
       return {
-        brandName: "Hill Victor",
+        brandName: "Islamia Online Bazaar",
         contact: {
-          email: "support@Hill Victor.com",
+          email: "support@islamiaonlinebazaar.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         }
@@ -33,7 +33,7 @@ async function getSettings() {
 
 export default async function AboutPage() {
   const settings = await getSettings();
-  const brandName = settings?.brandName || "Hill Victor";
+  const brandName = settings?.brandName || "Islamia Online Bazaar";
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -86,7 +86,7 @@ export default async function AboutPage() {
                 Connecting Premium Quality Fabrics with Modern Trends
               </h2>
               <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                At Hill Victor, we believe that style and comfort should go hand in hand. We curate each piece of apparel—whether it is an everyday t-shirt, a smart polo, a classic shirt, or a cozy hoodie—using top-grade fabric blends that ensure durability, breathability, and a premium feel.
+                At Islamia Online Bazaar, we believe that style and comfort should go hand in hand. We curate each piece of apparel—whether it is an everyday t-shirt, a smart polo, a classic shirt, or a cozy hoodie—using top-grade fabric blends that ensure durability, breathability, and a premium feel.
               </p>
               <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
                 Our materials are ethically sourced and processed under strict quality inspections. By prioritizing advanced stitching techniques, pre-shrunk fabrics, and high-quality dye retention, we ensure you receive long-lasting fashion essentials.
@@ -176,7 +176,7 @@ export default async function AboutPage() {
               </div>
               <h3 className="text-xl font-bold">Trusted Fit & Comfort</h3>
               <p className="text-muted-foreground text-xs leading-relaxed max-w-[280px]">
-                Thousands of satisfied fashion-conscious clients across Bangladesh trust Hill Victor for their daily wear.
+                Thousands of satisfied fashion-conscious clients across Bangladesh trust Islamia Online Bazaar for their daily wear.
               </p>
             </div>
           </div>
@@ -221,7 +221,7 @@ export default async function AboutPage() {
       <section className="py-20 text-center relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10 space-y-6">
           <h2 className="text-3xl md:text-5xl font-black tracking-tight max-w-2xl mx-auto leading-tight">
-            Upgrade Your Wardrobe with Hill Victor Essentials
+            Upgrade Your Wardrobe with Islamia Online Bazaar Essentials
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             Browse our collection today and choose the perfect outfits for your everyday look.

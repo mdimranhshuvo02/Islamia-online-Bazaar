@@ -15,8 +15,7 @@ if (fs.existsSync(envPath)) {
 }
 
 if (!mongodbUri) {
-  // Fallback if env file doesn't parse correctly
-  mongodbUri = 'mongodb+srv://HillVictor:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/HillVictor';
+  mongodbUri = 'mongodb+srv://islamiaonlinebazaar:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/islamiaonlinebazaar';
 }
 
 console.log('Connecting to MongoDB...');
@@ -36,46 +35,94 @@ const Category = mongoose.models.Category || mongoose.model('Category', Category
 
 const categories = [
   {
-    name: 'T-Shirt',
-    slug: 't-shirt',
-    image: '/assets/images/cagetory/t-shirt.webp',
+    name: 'Bags',
+    slug: 'bags',
+    image: '/assets/images/cagetory/handbag.b457671e.webp',
     isActive: true,
   },
   {
-    name: 'Polo-Shirt',
-    slug: 'polo-shirt',
-    image: '/assets/images/cagetory/polo-shirt.webp',
+    name: 'Shoes',
+    slug: 'shoes',
+    image: '/assets/images/cagetory/shoes.de4e3d85.webp',
     isActive: true,
   },
   {
-    name: 'Shirt',
-    slug: 'shirt',
-    image: '/assets/images/cagetory/shirt.webp',
+    name: 'Jewelry',
+    slug: 'jewelry',
+    image: '/assets/images/cagetory/necklace.374b9804.webp',
     isActive: true,
   },
   {
-    name: 'Hoodie',
-    slug: 'hoodie',
-    image: '/assets/images/cagetory/hoodie.webp',
+    name: 'Beauty Products',
+    slug: 'beauty-products',
+    image: '/assets/images/cagetory/beauty_product.d111272d.webp',
     isActive: true,
   },
   {
-    name: 'Pants',
-    slug: 'pants',
-    image: '/assets/images/cagetory/pants.webp',
+    name: 'Mens Clothing',
+    slug: 'mens-clothing',
+    image: '/assets/images/cagetory/mens_clothing.350a3497.webp',
+    isActive: true,
+  },
+  {
+    name: 'Womens Clothing',
+    slug: 'womens-clothing',
+    image: '/assets/images/cagetory/clothing.9917b6ae.webp',
+    isActive: true,
+  },
+  {
+    name: 'Baby Items',
+    slug: 'baby-items',
+    image: '/assets/images/cagetory/child-shoe.213d9bc4.webp',
+    isActive: true,
+  },
+  {
+    name: 'Sunglass',
+    slug: 'sunglass',
+    image: '/assets/images/cagetory/sunglass.f5333693.webp',
+    isActive: true,
+  },
+  {
+    name: 'Phone Accessories',
+    slug: 'phone-accessories',
+    image: '/assets/images/cagetory/mobile.33aae6fe.webp',
+    isActive: true,
+  },
+  {
+    name: 'Sports & Fitness',
+    slug: 'sports-fitness',
+    image: '/assets/images/cagetory/sport.9e051f78.webp',
+    isActive: true,
+  },
+  {
+    name: 'Watches',
+    slug: 'watches',
+    image: '/assets/images/cagetory/watch.9755a6ec.webp',
+    isActive: true,
+  },
+  {
+    name: 'Food Items',
+    slug: 'food-items',
+    image: '/assets/images/cagetory/grocery.2792c849.webp',
+    isActive: true,
+  },
+  {
+    name: 'Traveling',
+    slug: 'traveling',
+    image: '/assets/images/cagetory/travel.04b6513f.webp',
+    isActive: true,
+  },
+  {
+    name: 'Gadgets',
+    slug: 'gadgets',
+    image: '/assets/images/cagetory/gadget.2b0fcbdc.webp',
     isActive: true,
   }
 ];
 
 async function seed() {
   try {
-    try {
-      await mongoose.connect(mongodbUri);
-    } catch (connErr) {
-      console.log('SRV connection failed, trying direct connection fallback...');
-      const directUri = 'mongodb://HillVictor:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/HillVictor?ssl=true&authSource=admin';
-      await mongoose.connect(directUri);
-    }
+    await mongoose.connect(mongodbUri);
     console.log('Connected to MongoDB successfully.');
 
     // Clear existing categories
