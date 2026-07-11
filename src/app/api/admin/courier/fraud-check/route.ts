@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
     const settingsDoc = await GlobalSettings.findOne().sort({ updatedAt: -1 });
     const settings = settingsDoc ? settingsDoc.toObject({ getters: true }) : null;
 
-    const apiKey = settings?.courierConfig?.bdCourier?.apiKey || 'g5KGqDNfG1UEN0izSLcn9sZqUVRNrWvaBqY4dzM20RD3OEDpJGC7fTvuah5t';
+    const apiKey = settings?.courierConfig?.bdCourier?.apiKey;
+
+    if (!apiKey) {
+      return NextResponse.json({ message: 'BD Courier API key is not configured' }, { status: 400 });
+    }
 
     const res = await fetch('https://api.bdcourier.com/courier-check', {
       method: 'POST',
