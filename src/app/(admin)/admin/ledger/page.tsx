@@ -30,17 +30,24 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function AccountsLedgerPage() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [journalSearchTerm, setJournalSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
   // Editing Opening Balance state
   const [editingAccount, setEditingAccount] = useState<any>(null);
   const [newOpeningBalance, setNewOpeningBalance] = useState<number>(0);
   const [updatingOpening, setUpdatingOpening] = useState(false);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [journalSearchTerm, dateFilter.from, dateFilter.to]);
 
   // Manual Transaction Dialog state
   const [isTxOpen, setIsTxOpen] = useState(false);
@@ -167,8 +174,25 @@ export default function AccountsLedgerPage() {
     const name = tx.account?.name?.toLowerCase() || '';
     const desc = tx.description?.toLowerCase() || '';
     const ref = tx.reference?.toLowerCase() || '';
-    return name.includes(term) || desc.includes(term) || ref.includes(term);
+    const matchesSearch = name.includes(term) || desc.includes(term) || ref.includes(term);
+
+    let matchesDate = true;
+    if (dateFilter.from) {
+      matchesDate = matchesDate && new Date(tx.date) >= new Date(dateFilter.from + 'T00:00:00');
+    }
+    if (dateFilter.to) {
+      matchesDate = matchesDate && new Date(tx.date) <= new Date(dateFilter.to + 'T23:59:59');
+    }
+
+    return matchesSearch && matchesDate;
   });
+
+  const ITEMS_PER_PAGE = 20;
+  const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="flex-1 space-y-6 px-0 py-4 md:p-8">
@@ -231,14 +255,44 @@ export default function AccountsLedgerPage() {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle>Transaction Journal</CardTitle>
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search description or reference..."
-                className="pl-8"
-                value={journalSearchTerm}
-                onChange={(e) => setJournalSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search description or reference..."
+                  className="pl-8"
+                  value={journalSearchTerm}
+                  onChange={(e) => setJournalSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm">
+                <Input
+                  type="date"
+                  className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+                  value={dateFilter.from}
+                  onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                />
+                <span className="text-muted-foreground text-xs">to</span>
+                <Input
+                  type="date"
+                  className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+                  value={dateFilter.to}
+                  onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                />
+              </div>
+              {(dateFilter.from || dateFilter.to || journalSearchTerm) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDateFilter({ from: '', to: '' });
+                    setJournalSearchTerm('');
+                  }}
+                  className="text-xs text-muted-foreground hover:text-primary"
+                >
+                  Clear All
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -266,7 +320,7 @@ export default function AccountsLedgerPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions.map((tx) => (
+                  {paginatedTransactions.map((tx) => (
                     <TableRow key={tx._id}>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(tx.date), 'dd MMM yyyy')}
@@ -296,6 +350,15 @@ export default function AccountsLedgerPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="py-4 border-t bg-background px-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </CardContent>

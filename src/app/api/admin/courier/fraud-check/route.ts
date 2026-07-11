@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
+import FraudCheck from '@/models/FraudCheck';
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,9 +18,17 @@ export async function GET(req: NextRequest) {
     }
 
     await connectToDatabase();
+
+    // Check if we have any cached result in the database
+    const cachedResult = await FraudCheck.findOne({ phone });
+
+    if (cachedResult) {
+      return NextResponse.json(cachedResult.data);
+    }
+
+    // If no cache exists, call the BD Courier API
     const settingsDoc = await GlobalSettings.findOne().sort({ updatedAt: -1 });
     const settings = settingsDoc ? settingsDoc.toObject({ getters: true }) : null;
-
     const apiKey = settings?.courierConfig?.bdCourier?.apiKey;
 
     if (!apiKey) {
@@ -41,6 +50,14 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
+
+    // Save the result in database cache forever
+    await FraudCheck.findOneAndUpdate(
+      { phone },
+      { data },
+      { upsert: true, new: true }
+    );
+
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('BD Courier Fraud Check error:', error);

@@ -42,6 +42,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { generateBillPDF } from '@/lib/bill-invoice-generator';
+import { Pagination } from '@/components/ui/pagination';
 
 interface BillItemInput {
   name: string;
@@ -56,6 +57,14 @@ export default function ClientBillsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [settings, setSettings] = useState<any>(null);
+  
+  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page to 1 when search or status or date filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateFilter.from, dateFilter.to]);
 
   // Bill detail view state
   const [selectedBill, setSelectedBill] = useState<any>(null);
@@ -384,10 +393,31 @@ export default function ClientBillsPage() {
     }
   };
 
-  const filteredBills = bills.filter(b =>
-    b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.clientPhone.includes(searchTerm) ||
-    b.invoiceNo.includes(searchTerm)
+  const filteredBills = bills.filter((b) => {
+    const term = searchTerm.toLowerCase();
+    const name = b.clientName?.toLowerCase() || '';
+    const phone = b.clientPhone || '';
+    const invoice = b.invoiceNo || '';
+    const matchesSearch = name.includes(term) || phone.includes(term) || invoice.includes(term);
+
+    const matchesStatus = statusFilter === 'all' || b.status?.toLowerCase() === statusFilter.toLowerCase();
+
+    let matchesDate = true;
+    if (dateFilter.from) {
+      matchesDate = matchesDate && new Date(b.date) >= new Date(dateFilter.from + 'T00:00:00');
+    }
+    if (dateFilter.to) {
+      matchesDate = matchesDate && new Date(b.date) <= new Date(dateFilter.to + 'T23:59:59');
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
+  const ITEMS_PER_PAGE = 20;
+  const totalPages = Math.ceil(filteredBills.length / ITEMS_PER_PAGE);
+  const paginatedBills = filteredBills.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   // Metrics
@@ -442,15 +472,46 @@ export default function ClientBillsPage() {
       </div>
 
       {/* Filter and Search */}
-      <div className="flex flex-col md:flex-row items-center gap-4">
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search name, phone or bill no..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 w-full"
-          />
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search name, phone or bill no..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border text-sm">
+            <Input
+              type="date"
+              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+              value={dateFilter.from}
+              onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+            />
+            <span className="text-muted-foreground text-xs">to</span>
+            <Input
+              type="date"
+              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
+              value={dateFilter.to}
+              onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+            />
+          </div>
+          {(dateFilter.from || dateFilter.to || searchTerm || statusFilter !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDateFilter({ from: '', to: '' });
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+              className="text-xs text-muted-foreground hover:text-primary"
+            >
+              Clear All
+            </Button>
+          )}
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           {['all', 'paid', 'due'].map((filter) => (
@@ -496,7 +557,7 @@ export default function ClientBillsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredBills.map((bill) => (
+              paginatedBills.map((bill) => (
                 <TableRow key={bill._id}>
                   <TableCell>
                     <button
@@ -572,6 +633,15 @@ export default function ClientBillsPage() {
             )}
           </TableBody>
         </Table>
+        {totalPages > 1 && (
+          <div className="py-4 border-t bg-background px-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Create Bill Dialog */}

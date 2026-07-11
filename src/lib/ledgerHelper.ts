@@ -101,3 +101,42 @@ export async function recalculateLedgerBalance(accountCode: 'CASH' | 'BANK' | 'A
   account.currentBalance = runningBalance;
   await account.save();
 }
+
+/**
+ * Log order payment to the ledger
+ */
+export async function logOrderPaymentToLedger(order: any) {
+  try {
+    await connectToDatabase();
+    
+    // Determine account code based on paymentMethod
+    // Online -> BANK, others (COD, Manual) -> CASH
+    const accountCode = order.paymentMethod === 'Online' ? 'BANK' : 'CASH';
+    
+    const amount = order.totalAmount || 0;
+    const orderIdStr = order._id.toString();
+    const shortId = orderIdStr.slice(-8).toUpperCase();
+    
+    const description = `Customer payment received for Order #${shortId}`;
+    const reference = `ORDER-${shortId}`;
+    
+    // Ensure idempotency: check if transaction with this reference already exists
+    const exists = await LedgerTransaction.findOne({ reference });
+    if (exists) {
+      console.log(`[Ledger] Entry already exists for order reference: ${reference}`);
+      return;
+    }
+    
+    await logLedgerTransaction(
+      accountCode,
+      'debit', // Debit increases Cash or Bank
+      amount,
+      description,
+      reference,
+      order.createdAt ? new Date(order.createdAt) : new Date()
+    );
+    console.log(`[Ledger] Logged payment for Order #${shortId} to ${accountCode} successfully.`);
+  } catch (error) {
+    console.error('[Ledger] Error logging order payment to ledger:', error);
+  }
+}

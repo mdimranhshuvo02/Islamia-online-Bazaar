@@ -29,8 +29,22 @@ import {
   ChevronDown,
   Printer,
   FileText,
-  Filter as FilterIcon
+  Filter as FilterIcon,
+  Copy,
+  Search
 } from 'lucide-react';
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    width="1em"
+    height="1em"
+    {...props}
+  >
+    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.132-1.347a9.937 9.937 0 004.877 1.28h.005c5.505 0 9.989-4.478 9.99-9.985A9.992 9.992 0 0012.012 2zm5.836 14.199c-.32.899-1.576 1.706-2.185 1.761-.559.05-1.286.074-2.074-.176a9.839 9.839 0 01-4.705-3.023 9.388 9.388 0 01-1.926-3.412 5.097 5.097 0 01-.137-2.138c.112-.601.442-1.01.691-1.272.249-.262.502-.328.67-.328.167 0 .335.006.475.014.148.009.347-.058.544.417.202.489.691 1.684.75 1.805.059.12.098.262.019.41-.079.158-.12.262-.24.399-.118.136-.251.306-.358.411-.118.114-.242.238-.104.475.138.238.614 1.01.32.957.382.341.703.56.963.666.26.106.41.088.56-.079.15-.167.643-.75.814-.999.171-.249.34-.208.573-.122.233.086 1.48.697 1.737.825.257.128.428.192.488.295.06.103.06.596-.26 1.495z"/>
+  </svg>
+);
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +60,71 @@ import Swal from 'sweetalert2';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
 import { printStickerInvoice } from '@/lib/sticker-generator';
 
+
+const fraudCache: { [phone: string]: { success_ratio: number; total_parcel: number } | null } = {};
+const fraudPendingRequests: { [phone: string]: Promise<any> | null } = {};
+
+function FraudCheckBadge({ phone }: { phone?: string }) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!phone) return;
+
+    if (fraudCache[phone] !== undefined) {
+      setData(fraudCache[phone]);
+      return;
+    }
+
+    const fetchFraud = async () => {
+      setLoading(true);
+      try {
+        let promise = fraudPendingRequests[phone];
+        if (!promise) {
+          promise = fetch(`/api/admin/courier/fraud-check?phone=${phone}`).then(res => {
+            if (res.ok) return res.json();
+            throw new Error('Failed');
+          });
+          fraudPendingRequests[phone] = promise;
+        }
+        
+        const json = await promise;
+        if (json?.status === 'success' && json?.data?.summary) {
+          const summary = json.data.summary;
+          fraudCache[phone] = {
+            success_ratio: summary.success_ratio,
+            total_parcel: summary.total_parcel
+          };
+        } else {
+          fraudCache[phone] = null;
+        }
+      } catch (e) {
+        fraudCache[phone] = null;
+      } finally {
+        setData(fraudCache[phone]);
+        setLoading(false);
+        delete fraudPendingRequests[phone];
+      }
+    };
+
+    fetchFraud();
+  }, [phone]);
+
+  if (loading) {
+    return <span className="text-[10px] text-muted-foreground ml-1.5 animate-pulse">Checking...</span>;
+  }
+
+  if (!data) return null;
+
+  const ratio = data.success_ratio;
+  const colorClass = ratio >= 80 ? 'text-green-600 font-extrabold' : ratio >= 60 ? 'text-yellow-600 font-extrabold' : 'text-red-600 font-extrabold';
+
+  return (
+    <span className={`text-[10px] px-1 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 ${colorClass}`} title={`${data.total_parcel} total parcels`}>
+      {ratio}% Success
+    </span>
+  );
+}
 
 function OrdersContent() {
   const router = useRouter();
@@ -466,22 +545,32 @@ function OrdersContent() {
 
   return (
     <div className="flex-1 space-y-4 px-0 py-4 md:p-8">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Order Management</h2>
-          <p className="text-muted-foreground text-sm">Review, fulfillment and track shop orders.</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-shrink-0">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight whitespace-nowrap">Order Management</h2>
+          <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Review, fulfillment and track shop orders.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <Button onClick={exportToCSV} className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0">
+          <Download className="mr-2 h-4 w-4" /> Export
+        </Button>
+      </div>
+
+      {/* Search and Date Range Row (1 Row) */}
+      <div className="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
+        <div className="relative w-full md:w-80 shrink-0">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search name, phone, email or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-72"
+            className="pl-8 w-full h-10"
           />
+        </div>
 
+        <div className="block md:hidden w-full sm:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10">
+              <Button variant="outline" className="h-10 w-full">
                 <FilterIcon className="mr-2 h-4 w-4" />
                 {statusFilter === 'All' ? 'All Status' : statusFilter}
                 <ChevronDown className="ml-2 h-3 w-3 opacity-50" />
@@ -519,40 +608,68 @@ function OrdersContent() {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border">
-            <Input
-              type="date"
-              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
-              value={dateFilter.from}
-              onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
-            />
-            <span className="text-muted-foreground text-xs">to</span>
-            <Input
-              type="date"
-              className="h-8 w-36 border-none bg-transparent focus-visible:ring-0"
-              value={dateFilter.to}
-              onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
-            />
-          </div>
-          <Button variant="outline" onClick={exportToCSV}>
-            <Download className="mr-2 h-4 w-4" /> Export
-          </Button>
-          {(statusFilter !== 'All' || dateFilter.from || dateFilter.to || searchTerm) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setStatusFilter('All');
-                setDateFilter({ from: '', to: '' });
-                setSearchTerm('');
-              }}
-              className="text-xs text-muted-foreground hover:text-primary"
-            >
-              Clear All
-            </Button>
-          )}
         </div>
+
+        <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md border w-full md:w-auto h-10">
+          <Input
+            type="date"
+            className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
+            value={dateFilter.from}
+            onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+          />
+          <span className="text-muted-foreground text-xs">to</span>
+          <Input
+            type="date"
+            className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
+            value={dateFilter.to}
+            onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+          />
+        </div>
+
+        {(statusFilter !== 'All' || dateFilter.from || dateFilter.to || searchTerm) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setStatusFilter('All');
+              setDateFilter({ from: '', to: '' });
+              setSearchTerm('');
+            }}
+            className="text-xs text-muted-foreground hover:text-primary shrink-0"
+          >
+            Clear All
+          </Button>
+        )}
+      </div>
+
+      {/* Status Tabs Row (Desktop only - Full Width Grid) */}
+      <div className="hidden md:grid md:grid-cols-8 gap-2 pb-2 border-b">
+        {[
+          { label: 'All', value: 'All' },
+          { label: 'Placed', value: 'Order Placed' },
+          { label: 'Confirmed', value: 'Confirmed' },
+          { label: 'Paid', value: 'Paid' },
+          { label: 'Ready', value: 'Ready for Delivery' },
+          { label: 'Released', value: 'Released for Delivery' },
+          { label: 'Delivered', value: 'Delivered' },
+          { label: 'Cancelled', value: 'Cancelled' }
+        ].map((status) => {
+          const isActive = statusFilter === status.value;
+          return (
+            <button
+              key={status.value}
+              onClick={() => setStatusFilter(status.value)}
+              className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate ${
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-background hover:bg-muted text-muted-foreground border border-input'
+              }`}
+              title={status.label}
+            >
+              {status.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="rounded-md border bg-background overflow-hidden relative">
@@ -684,12 +801,43 @@ function OrdersContent() {
                       
                       <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
                         <span className="font-semibold text-slate-900 dark:text-white">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
-                        <span 
-                          onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
-                          className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
-                        >
-                          {order.shippingAddress?.phone || 'No Phone'}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span 
+                            onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
+                            className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
+                          >
+                            {order.shippingAddress?.phone || 'No Phone'}
+                          </span>
+                          {order.shippingAddress?.phone && (
+                            <>
+                              <a 
+                                href={`https://wa.me/${order.shippingAddress.phone.replace(/[^0-9]/g, '').startsWith('88') ? order.shippingAddress.phone.replace(/[^0-9]/g, '') : '88' + (order.shippingAddress.phone.replace(/[^0-9]/g, '').startsWith('0') ? order.shippingAddress.phone.replace(/[^0-9]/g, '').slice(1) : order.shippingAddress.phone.replace(/[^0-9]/g, ''))}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-green-600 hover:text-green-700 transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded"
+                                title="Chat on WhatsApp"
+                              >
+                                <WhatsAppIcon className="h-3.5 w-3.5" />
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(order.shippingAddress.phone);
+                                  toast.success('Phone number copied!');
+                                }}
+                                className="text-muted-foreground hover:text-primary transition-colors p-0.5 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded animate-in fade-in duration-200"
+                                title="Copy Phone Number"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        {order.shippingAddress?.phone && (
+                          <div className="mt-0.5">
+                            <FraudCheckBadge phone={order.shippingAddress.phone} />
+                          </div>
+                        )}
                         <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'No Email'}</span>
                         <span className="text-[10px] text-muted-foreground uppercase mt-0.5">
                           {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, p') : 'N/A'}

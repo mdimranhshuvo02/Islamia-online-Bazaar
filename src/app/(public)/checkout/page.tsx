@@ -238,6 +238,7 @@ function CheckoutContent() {
   }, [items, isHydrated]);
 
   const [syncData, setSyncData] = useState<any>(null);
+  const [isPendingOrderBlocked, setIsPendingOrderBlocked] = useState(false);
 
   const hasTrackedInitiate = useRef(false);
   // Track InitiateCheckout
@@ -284,6 +285,33 @@ function CheckoutContent() {
       ttEvent('InitiateCheckout', checkoutPayload, initiateUserData);
     });
   }, [isHydrated, items, totalAmount, profile?.email]);
+
+  // Check for pending order proactively when phone number is typed or on load
+  const watchedPhoneVal = form.watch('phone');
+  useEffect(() => {
+    const checkPendingOrder = async () => {
+      const query = new URLSearchParams();
+      if (watchedPhoneVal && watchedPhoneVal.trim().length >= 11) {
+        query.append('phone', watchedPhoneVal.trim());
+      }
+      try {
+        const res = await fetch(`/api/orders/check-pending?${query.toString()}`);
+        if (res.ok) {
+          const { hasPending } = await res.json();
+          if (hasPending) {
+            setIsPendingOrderBlocked(true);
+            toast.error("You already have a pending order. Please wait for it to be confirmed before placing another order.");
+          } else {
+            setIsPendingOrderBlocked(false);
+          }
+        }
+      } catch (err) {
+        console.error("Error checking pending order:", err);
+      }
+    };
+
+    checkPendingOrder();
+  }, [watchedPhoneVal]);
 
   // Debounced sync of checkout info for abandoned carts tracking
   const watchedFullName = form.watch('fullName');
@@ -998,14 +1026,14 @@ function CheckoutContent() {
                 <CardFooter className="pt-2 border-t flex flex-col gap-3">
                   <Button
                     type="submit"
-                    className={`w-full h-14 rounded-full font-black uppercase tracking-widest text-sm transition-all ${isFormValid && !syncData?.hasInsufficientStock
+                    className={`w-full h-14 rounded-full font-black uppercase tracking-widest text-sm transition-all ${isFormValid && !syncData?.hasInsufficientStock && !isPendingOrderBlocked
                         ? 'bg-primary shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95'
                         : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
                       }`}
-                    disabled={loading || !isFormValid || syncData?.hasInsufficientStock}
+                    disabled={loading || !isFormValid || syncData?.hasInsufficientStock || isPendingOrderBlocked}
                   >
                     {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
-                    {syncData?.hasInsufficientStock ? 'পর্যাপ্ত স্টক নেই' : 'অর্ডার নিশ্চিত করুন'}
+                    {isPendingOrderBlocked ? 'পেন্ডিং অর্ডার রয়েছে' : syncData?.hasInsufficientStock ? 'পর্যাপ্ত স্টক নেই' : 'অর্ডার নিশ্চিত করুন'}
                   </Button>
                   {!isFormValid && (
                     <p className="text-[10px] font-bold text-muted-foreground text-center w-full uppercase tracking-widest">
