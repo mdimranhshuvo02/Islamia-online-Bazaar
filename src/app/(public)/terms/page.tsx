@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
 import { Separator } from '@/components/ui/separator';
 import { FileText, ShoppingBag, Truck, UserCheck, Scale, HelpCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Islamia Online Bazaar',
-  description: 'Understand the terms and conditions for shopping at Islamia Online Bazaar.',
+  title: 'Terms & Conditions | Islamia Online Bazar',
+  description: 'Understand the terms and conditions for shopping at Islamia Online Bazar.',
 };
 
 async function getSettings() {
@@ -15,9 +15,9 @@ async function getSettings() {
     const settings = await GlobalSettings.findOne().lean();
     if (!settings) {
       return {
-        brandName: "Islamia Online Bazaar",
+        brandName: "Islamia Online Bazar",
         contact: {
-          email: "support@islamiaonlinebazaar.com",
+          email: "support@islamiaonlineBazar.com",
           phone: "+8801234567890"
         }
       };
@@ -26,9 +26,9 @@ async function getSettings() {
   } catch (error) {
     console.error('Error fetching settings for terms page:', error);
     return {
-      brandName: "Islamia Online Bazaar",
+      brandName: "Islamia Online Bazar",
       contact: {
-        email: "support@islamiaonlinebazaar.com",
+        email: "support@islamiaonlineBazar.com",
         phone: "+8801234567890"
       }
     };
@@ -38,7 +38,7 @@ async function getSettings() {
 export default async function TermsPage() {
   const settings = await getSettings();
   const brandName = settings.brandName || "RPL Market";
-  const contactEmail = settings.contact?.email || "support@islamiaonlinebazaar.com";
+  const contactEmail = settings.contact?.email || "support@islamiaonlineBazar.com";
   const lastUpdated = "April 04, 2026";
 
   return (

@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import { Mail, Phone, MapPin, ExternalLink, MessageCircleMore } from 'lucide-react';
 import { Facebook, X, Instagram, Youtube } from '@/components/ui/social-icons';
 import connectToDatabase from '@/lib/db';
@@ -7,8 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Islamia Online Bazaar',
-  description: 'Get in touch with Islamia Online Bazaar for any inquiries, support, or feedback.',
+  title: 'Contact Us | Islamia Online Bazar',
+  description: 'Get in touch with Islamia Online Bazar for any inquiries, support, or feedback.',
 };
 
 async function getSettings() {
@@ -17,9 +17,9 @@ async function getSettings() {
     const settings = await GlobalSettings.findOne().lean();
     if (!settings) {
       return {
-        brandName: "Islamia Online Bazaar",
+        brandName: "Islamia Online Bazar",
         contact: {
-          email: "support@islamiaonlinebazaar.com",
+          email: "support@islamiaonlineBazar.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         },
@@ -145,7 +145,7 @@ export default async function ContactPage() {
                 </p>
                 <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-md border bg-muted">
                   <iframe
-                    title="Islamia Online Bazaar Location"
+                    title="Islamia Online Bazar Location"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}

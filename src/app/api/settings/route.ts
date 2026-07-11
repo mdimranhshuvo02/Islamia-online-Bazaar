@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
@@ -32,9 +32,9 @@ export async function GET() {
     const settings = await GlobalSettings.findOne().sort({ updatedAt: -1 });
     if (!settings) {
       return NextResponse.json({
-        brandName: process.env.NEXT_PUBLIC_STORE_NAME || "Islamia Online Bazaar",
+        brandName: process.env.NEXT_PUBLIC_STORE_NAME || "Islamia Online Bazar",
         contact: {
-          email: "support@islamiaonlinebazaar.com",
+          email: "support@islamiaonlineBazar.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         },
@@ -47,8 +47,8 @@ export async function GET() {
           tiktok: '',
           whatsapp: ''
         },
-        marqueeText: "Welcome to Islamia Online Bazaar!",
-        metaTitle: process.env.NEXT_PUBLIC_STORE_NAME || "Islamia Online Bazaar",
+        marqueeText: "Welcome to Islamia Online Bazar!",
+        metaTitle: process.env.NEXT_PUBLIC_STORE_NAME || "Islamia Online Bazar",
         metaDescription: "The most popular online shop in Bangladesh.",
         logoUrl: "/logo.webp",
         freeDeliveryThreshold: 0,

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Link from 'next/link';
@@ -110,8 +110,8 @@ export default function FooterV2() {
           {/* Brand Essence */}
           <div className="lg:col-span-4 space-y-6 flex flex-col items-center lg:items-start">
             <Link href="/" className="text-2xl md:text-3xl font-black tracking-tighter hover:scale-105 transition-all flex items-center gap-2 group text-foreground">
-              <Image src="/logo.webp" width={40} height={40} alt="Islamia Online Bazaar Logo" className="object-contain" />
-              {settings?.brandName || 'Islamia Online Bazaar'}
+              <Image src="/logo.webp" width={40} height={40} alt="Islamia Online Bazar Logo" className="object-contain" />
+              {settings?.brandName || 'Islamia Online Bazar'}
             </Link>
             <p className="text-muted-foreground text-sm max-w-sm leading-relaxed font-medium">
               Pushing the boundaries of design. Born in the heart of Dhaka, engineering for the world.
@@ -186,7 +186,7 @@ export default function FooterV2() {
 
         {/* Bottom Bar - Reduced Padding & Smart Layout */}
         <div className="pt-6 border-t border-muted flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-          <p className="text-center md:text-left">© {currentYear} Islamia Online Bazaar CO. ALL RIGHTS RESERVED.</p>
+          <p className="text-center md:text-left">© {currentYear} Islamia Online Bazar CO. ALL RIGHTS RESERVED.</p>
           <div className="flex items-center gap-4">
             <DeveloperLogo className="opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all scale-90 md:scale-100" />
           </div>

@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
 import { Separator } from '@/components/ui/separator';
 import { ShieldCheck, Info, Share2, Lock, Eye, Bell } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Islamia Online Bazaar',
-  description: 'Learn how Islamia Online Bazaar collects, uses, and protects your personal information.',
+  title: 'Privacy Policy | Islamia Online Bazar',
+  description: 'Learn how Islamia Online Bazar collects, uses, and protects your personal information.',
 };
 
 async function getSettings() {
@@ -15,9 +15,9 @@ async function getSettings() {
     const settings = await GlobalSettings.findOne().lean();
     if (!settings) {
       return {
-        brandName: "Islamia Online Bazaar",
+        brandName: "Islamia Online Bazar",
         contact: {
-          email: "support@islamiaonlinebazaar.com"
+          email: "support@islamiaonlineBazar.com"
         }
       };
     }
@@ -25,9 +25,9 @@ async function getSettings() {
   } catch (error) {
     console.error('Error fetching settings for privacy page:', error);
     return {
-      brandName: "Islamia Online Bazaar",
+      brandName: "Islamia Online Bazar",
       contact: {
-        email: "support@islamiaonlinebazaar.com"
+        email: "support@islamiaonlineBazar.com"
       }
     };
   }
@@ -36,7 +36,7 @@ async function getSettings() {
 export default async function PrivacyPage() {
   const settings = await getSettings();
   const brandName = settings.brandName || "RPL Market";
-  const contactEmail = settings.contact?.email || "support@islamiaonlinebazaar.com";
+  const contactEmail = settings.contact?.email || "support@islamiaonlineBazar.com";
   const lastUpdated = "April 04, 2026";
 
   return (

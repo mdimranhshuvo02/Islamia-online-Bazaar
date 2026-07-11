@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
@@ -122,7 +122,7 @@ export default function LoginPage() {
           >
             <h2 className="text-4xl font-bold text-white mb-4 font-serif">Discover the Best Deals</h2>
             <p className="text-lg text-white/80 max-w-md">
-              Join Islamia Online Bazaar today and get access to exclusive offers, personalized recommendations, and a seamless shopping experience.
+              Join Islamia Online Bazar today and get access to exclusive offers, personalized recommendations, and a seamless shopping experience.
             </p>
           </motion.div>
         </div>

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Metadata } from 'next';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
@@ -49,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     getCachedBanners()
   ]);
 
-  const brandName = settings?.brandName || 'Islamia Online Bazaar';
+  const brandName = settings?.brandName || 'Islamia Online Bazar';
   const metaTitle = settings?.metaTitle || brandName;
   const description = settings?.metaDescription || settings?.siteDescription || 'Your ultimate destination for quality products.';
   const ogImage = banners?.[0]?.image || settings?.logoUrl || '';

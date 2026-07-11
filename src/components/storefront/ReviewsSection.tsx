@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Star, MessageSquare, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
@@ -105,7 +105,7 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
             <Badge variant="secondary" className="rounded-full">{reviews.length}</Badge>
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Real feedback from verified Islamia Online Bazaar customers.
+            Real feedback from verified Islamia Online Bazar customers.
           </p>
         </div>
 

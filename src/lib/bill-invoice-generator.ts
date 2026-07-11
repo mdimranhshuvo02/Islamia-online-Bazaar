@@ -1,11 +1,11 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, isValid } from 'date-fns';
 
 export async function generateBillPDF(bill: any, settings: any, mode: 'download' | 'print' = 'download') {
   const doc = new jsPDF();
 
-  const brandName = settings?.brandName || "Islamia Online Bazaar";
+  const brandName = settings?.brandName || "Islamia Online Bazar";
   const brandEmail = settings?.contact?.email || "";
   const brandPhone = settings?.contact?.phone || "";
   const brandAddress = settings?.contact?.address || "";

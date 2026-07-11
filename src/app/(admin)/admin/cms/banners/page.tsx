@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -47,7 +47,7 @@ export default function BannersPage() {
       text: `You are about to delete the banner "${title}". This action cannot be undone!`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#00D1B2', // Islamia Online Bazaar primary color roughly
+      confirmButtonColor: '#00D1B2', // Islamia Online Bazar primary color roughly
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!',
       background: '#fff',

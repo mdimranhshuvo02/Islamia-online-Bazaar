@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import {
   Geist,
   Geist_Mono,
@@ -203,21 +203,21 @@ export async function generateMetadata(): Promise<Metadata> {
       appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: settings.brandName || "Islamia Online Bazaar",
+        title: settings.brandName || "Islamia Online Bazar",
       },
       formatDetection: {
         telephone: false,
       },
       openGraph: {
-        title: settings.metaTitle || settings.brandName || "Islamia Online Bazaar",
+        title: settings.metaTitle || settings.brandName || "Islamia Online Bazar",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
         url: baseUrl,
-        siteName: settings.brandName || "Islamia Online Bazaar",
+        siteName: settings.brandName || "Islamia Online Bazar",
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: settings.metaTitle || settings.brandName || "Islamia Online Bazaar",
+        title: settings.metaTitle || settings.brandName || "Islamia Online Bazar",
         description: settings.metaDescription || settings.brandName || "Your ultimate destination for quality products.",
       },
       verification: {
@@ -234,7 +234,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (error) {
     return {
-      title: "Islamia Online Bazaar",
+      title: "Islamia Online Bazar",
       description: "Your ultimate destination for quality products.",
     };
   }

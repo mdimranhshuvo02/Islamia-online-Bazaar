@@ -1,4 +1,4 @@
-import { headers } from 'next/headers';
+﻿import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import { getCachedProducts, getCachedCategories, getCachedSettings } from '@/lib/data-fetching';
 import { ShopHeaderSkeleton, ProductCardSkeleton } from '@/components/storefront/Skeletons';
@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
-  const brandName = settings?.brandName || 'Islamia Online Bazaar';
+  const brandName = settings?.brandName || 'Islamia Online Bazar';
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const headersList = await headers();
   const hostname = headersList.get('host') || 'localhost';

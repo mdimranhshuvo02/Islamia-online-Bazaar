@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Order from '@/models/Order';
 import { initPayment } from '@/lib/sslcommerz';
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/api/payment/cancel?id=${orderId}`,
       ipn_url: `${baseUrl}/api/payment/ipn`,
       shipping_method: 'Courier',
-      product_name: 'Islamia Online Bazaar Order',
+      product_name: 'Islamia Online Bazar Order',
       product_category: 'E-commerce',
       product_profile: 'general',
       cus_name: shippingAddress.fullName,

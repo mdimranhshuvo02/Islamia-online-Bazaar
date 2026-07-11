@@ -1,6 +1,6 @@
-# Islamia Online Bazaar Product Image AI Prompts (1:1 Aspect Ratio)
+# Islamia Online Bazar Product Image AI Prompts (1:1 Aspect Ratio)
 
-This document contains **70 professional product image prompts** (5 products for each of the 14 categories) for the Islamia Online Bazaar storefront.
+This document contains **70 professional product image prompts** (5 products for each of the 14 categories) for the Islamia Online Bazar storefront.
 
 Please generate these images in a **1:1 square aspect ratio** (using Midjourney, DALL-E 3, or FLUX). Convert them to **`.webp`** format, name them exactly as shown below, and place them inside the **`public/assets/images/products`** folder.
 

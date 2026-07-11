@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Loyalty promotion banner component for home page
 import { Sparkles, Trophy, Wallet, ArrowRight } from 'lucide-react';
@@ -24,7 +24,7 @@ export function LoyaltyBanner({ settings, layout }: LoyaltyBannerProps) {
               Lifetime Rewards
             </div>
             <h2 className={`text-2xl sm:text-3xl ${layout === 'v3' ? 'lg:text-3xl' : 'md:text-5xl'} font-black tracking-tight md:tracking-tighter leading-tight md:leading-none break-words`}>
-              JOIN THE <span className="text-primary">Islamia Online Bazaar</span> <br />
+              JOIN THE <span className="text-primary">Islamia Online Bazar</span> <br />
               LOYALTY CLUB
             </h2>
             <p className={`text-gray-400 ${layout === 'v3' ? 'lg:text-sm' : 'text-lg'} max-w-md`}>

@@ -61,6 +61,11 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [liveResults, setLiveResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<any>(null);
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -140,13 +145,40 @@ export default function Navbar() {
 
   const mainCategories = categories.filter(c => !c.parentCategory);
 
+  // Live search debounce
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const trimmed = searchTerm.trim();
+    if (!trimmed) { setLiveResults([]); setShowDropdown(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=6`);
+        if (res.ok) { const data = await res.json(); setLiveResults(data.products || []); setShowDropdown(true); }
+      } catch { /* silent */ } finally { setIsSearching(false); }
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) setShowDropdown(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       router.push(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
       setSearchTerm('');
+      setShowDropdown(false);
+      setLiveResults([]);
     }
   };
+
+  const handleResultClick = () => { setShowDropdown(false); setSearchTerm(''); setLiveResults([]); };
 
   const handleVoiceSearch = () => {
     const SpeechRecognition =
@@ -206,17 +238,19 @@ export default function Navbar() {
           <div className="relative flex h-14 md:h-20 items-center justify-between px-1 md:px-6 border-b border-muted/30">
 
             {/* Desktop Search (Left) */}
-            <div className="hidden md:flex flex-1 items-center max-w-[280px]">
+            <div ref={searchContainerRef} className="hidden md:flex flex-1 items-center max-w-[280px] relative">
               <form onSubmit={handleSearch} className="relative w-full group">
                 <label htmlFor="navbar-search" className="sr-only">Search products</label>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <input
                   id="navbar-search"
                   type="text"
-                  placeholder={isListening ? 'Listening...' : 'Search...'}
+                  placeholder={isListening ? 'Listening...' : 'Search products...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => { if (liveResults.length > 0) setShowDropdown(true); }}
                   aria-label="Search products"
+                  autoComplete="off"
                   className="w-full bg-muted/40 border-none rounded-full py-2.5 pl-10 pr-10 text-xs focus:ring-1 focus:ring-primary/20 transition-all outline-none"
                 />
                 <button
@@ -229,6 +263,52 @@ export default function Navbar() {
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </button>
               </form>
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground text-xs">
+                      <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" /> Searching...
+                    </div>
+                  ) : liveResults.length > 0 ? (
+                    <>
+                      <ul className="divide-y divide-border/50">
+                        {liveResults.map((product) => {
+                          const price = product.salePrice ?? product.price;
+                          const image = product.images?.[0];
+                          return (
+                            <li key={product._id}>
+                              <Link href={`/products/${product.slug}`} onClick={handleResultClick} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors group">
+                                {image ? (
+                                  <div className="h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                                    <Image src={image} alt={product.name} width={40} height={40} className="h-full w-full object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="h-10 w-10 rounded-lg bg-muted flex-shrink-0 flex items-center justify-center">
+                                    <Search className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold truncate group-hover:text-primary transition-colors">{product.name}</p>
+                                  <p className="text-[11px] text-primary font-bold">৳{price?.toLocaleString()}</p>
+                                </div>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <div className="border-t border-border/50 px-4 py-2.5">
+                        <Link href={`/shop?search=${encodeURIComponent(searchTerm.trim())}`} onClick={handleResultClick} className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:underline">
+                          <Search className="h-3 w-3" /> See all results for &ldquo;{searchTerm}&rdquo;
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center py-6 text-muted-foreground text-xs gap-1">
+                      <Search className="h-5 w-5 mb-1 opacity-40" /> No results found for &ldquo;{searchTerm}&rdquo;
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Trigger */}

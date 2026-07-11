@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -296,7 +296,7 @@ export default function ResetPasswordPage() {
         </motion.div>
 
         <div className="mt-auto pt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Islamia Online Bazaar. All rights reserved.
+          &copy; {new Date().getFullYear()} Islamia Online Bazar. All rights reserved.
         </div>
       </div>
     </div>

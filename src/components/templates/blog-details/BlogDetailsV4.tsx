@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -144,14 +144,14 @@ export default function BlogDetailsV4({ blog, readingTime }: BlogDetailsV4Props)
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-neutral-100 dark:bg-neutral-900 p-1 relative overflow-hidden">
                 <Image
-                  src={blog.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(blog.author?.name || 'Islamia Online Bazaar')}`}
+                  src={blog.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(blog.author?.name || 'Islamia Online Bazar')}`}
                   alt="Author"
                   fill
                   className="rounded-full object-cover"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-black uppercase tracking-widest">{blog.author?.name || 'Islamia Online Bazaar Curators'}</span>
+                <span className="text-xs font-black uppercase tracking-widest">{blog.author?.name || 'Islamia Online Bazar Curators'}</span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Design Narrative Expert</span>
               </div>
             </div>
