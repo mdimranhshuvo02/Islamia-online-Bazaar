@@ -88,7 +88,7 @@ export default function ProductDetailsV4Client({ product }: ProductDetailsV4Clie
         activeVariant.image
       ].filter(Boolean) as string[];
       if (activeImages.length > 0) {
-        return activeImages;
+        return Array.from(new Set(activeImages));
       }
     }
     return product.images || [];

@@ -89,7 +89,7 @@ export default function ProductDetailsV5Client({ product }: ProductDetailsV5Clie
         activeVariant.image
       ].filter(Boolean) as string[];
       if (activeImages.length > 0) {
-        return activeImages;
+        return Array.from(new Set(activeImages));
       }
     }
     return product.images || [];
