@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
@@ -14,6 +14,7 @@ const getMaskedSettings = (raw: any, masked: any) => ({
     steadfast: masked.courierConfig.steadfast || null,
     pathao: masked.courierConfig.pathao || null,
     redx: masked.courierConfig.redx || null,
+    bdCourier: masked.courierConfig.bdCourier || null,
   } : masked.courierConfig,
   paymentConfig: masked.paymentConfig ? {
     ...masked.paymentConfig,

@@ -34,6 +34,7 @@ export default function ProductDetailsV3Client({ product }: ProductDetailsV3Clie
   const isAdmin = (session?.user as any)?.role === 'admin';
 
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
   const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
   const [selectedColor, setSelectedColor] = useState<string | null>(defaultVariant?.color || null);
   const [selectedSize, setSelectedSize] = useState<string | null>(defaultVariant?.size || null);
@@ -75,6 +76,23 @@ export default function ProductDetailsV3Client({ product }: ProductDetailsV3Clie
     ),
     [product.variants, selectedColor, selectedSize]
   );
+
+  const allImages = useMemo(() => {
+    if (activeVariant) {
+      const activeImages = [
+        ...(activeVariant.images || []),
+        activeVariant.image
+      ].filter(Boolean) as string[];
+      if (activeImages.length > 0) {
+        return activeImages;
+      }
+    }
+    return product.images || [];
+  }, [product.images, activeVariant]);
+
+  useEffect(() => {
+    setSelectedImage(0);
+  }, [activeVariant]);
 
   const hasVariants = (uniqueColors.length > 0 || uniqueSizes.length > 0);
   const currentVariant = activeVariant || defaultVariant;
@@ -157,7 +175,7 @@ export default function ProductDetailsV3Client({ product }: ProductDetailsV3Clie
           <div className="space-y-6">
              <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-neutral-50 dark:bg-neutral-900 border-2 border-neutral-100 dark:border-neutral-800 group">
                  <Image 
-                   src={activeVariant?.image || (product.variants && product.variants.length > 0 ? product.variants[0]?.image : product.images?.[0]) || '/placeholder.png'} 
+                   src={allImages[selectedImage] || '/placeholder.png'} 
                    alt={product.name} 
                    fill 
                    className="object-cover transition-transform duration-[2s] group-hover:scale-105"
@@ -192,8 +210,12 @@ export default function ProductDetailsV3Client({ product }: ProductDetailsV3Clie
              </div>
              
              <div className="grid grid-cols-4 gap-4">
-                {product.images?.map((img: string, i: number) => (
-                   <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-neutral-100 dark:border-neutral-800 hover:border-primary transition-all cursor-pointer">
+                {allImages?.map((img: string, i: number) => (
+                   <div 
+                     key={i} 
+                     onClick={() => setSelectedImage(i)}
+                     className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === i ? 'border-primary' : 'border-neutral-100 dark:border-neutral-800 hover:border-primary'}`}
+                   >
                       <Image src={img} alt={`${product.name} ${i}`} fill className="object-cover" />
                    </div>
                 ))}

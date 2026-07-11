@@ -80,6 +80,9 @@ const marketingSettingsSchema = z.object({
     redx: z.object({
       apiKey: z.string().nullish().transform(val => val ?? ''),
     }).nullable().optional(),
+    bdCourier: z.object({
+      apiKey: z.string().nullish().transform(val => val ?? ''),
+    }).nullable().optional(),
   }).optional(),
   facebookDomainVerification: z.string().nullish().transform(val => val ?? ''),
   metaPixelId: z.string().nullish().transform(val => val ?? ''),
@@ -125,6 +128,7 @@ export default function MarketingSettingsPage() {
         steadfast: { apiKey: '', secretKey: '' },
         pathao: { clientId: '', clientSecret: '', storeId: '' },
         redx: { apiKey: '' },
+        bdCourier: { apiKey: '' },
       },
       facebookDomainVerification: '',
       metaPixelId: '',
@@ -198,6 +202,9 @@ export default function MarketingSettingsPage() {
                   },
                   redx: {
                     apiKey: result.data.courierConfig?.redx?.apiKey || '',
+                  },
+                  bdCourier: {
+                    apiKey: result.data.courierConfig?.bdCourier?.apiKey || '',
                   },
                 },
                 facebookDomainVerification: result.data.facebookDomainVerification || '',
@@ -604,6 +611,19 @@ export default function MarketingSettingsPage() {
                           <FormLabel className="font-bold text-xs">RedX API Key</FormLabel>
                           <FormControl>
                             <Input type="text" placeholder="RedX API Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="courierConfig.bdCourier.apiKey"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="font-bold text-xs">BD Courier Fraud Check API Key</FormLabel>
+                          <FormControl>
+                            <Input type="text" placeholder="BD Courier API Key" {...field} className="h-10 rounded-lg border px-3 text-xs" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

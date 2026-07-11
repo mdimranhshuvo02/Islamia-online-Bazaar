@@ -29,7 +29,7 @@ export async function GET(
     }
 
     // Authorization: Must be an admin OR the owner of the order OR it is a guest order
-    const isAdmin = session?.user && ['admin', 'super_admin'].includes((session.user as any)?.role);
+    const isAdmin = session?.user && ['admin', 'super_admin', 'manager'].includes((session.user as any)?.role);
     const isOwner = session?.user && order.user?._id?.toString() === (session.user as any).id;
     const isGuestOrder = !order.user;
 
@@ -55,7 +55,7 @@ export async function PATCH(
   try {
     const { slug } = await params;
     const session = await auth();
-    if (!session || !session.user || !(['admin', 'super_admin'].includes((session.user as any)?.role))) {
+    if (!session || !session.user || !(['admin', 'super_admin', 'manager'].includes((session.user as any)?.role))) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
@@ -74,7 +74,8 @@ export async function PATCH(
       deliveryCharge,
       couponDiscountAmount,
       walletAmountUsed,
-      items
+      items,
+      internalNote
     } = body;
 
     const conn = await connectToDatabase();
@@ -99,6 +100,7 @@ export async function PATCH(
       const allowedPaymentStatuses = ['Pending', 'Paid', 'Failed'];
 
       const updateData: any = {};
+      if (internalNote !== undefined) updateData.internalNote = internalNote;
       if (status) {
         if (!allowedStatuses.includes(status)) {
           await dbSession.abortTransaction();
@@ -249,7 +251,7 @@ export async function DELETE(
   try {
     const { slug } = await params;
     const session = await auth();
-    if (!session || !session.user || !(['admin', 'super_admin'].includes((session.user as any)?.role))) {
+    if (!session || !session.user || !(['admin', 'super_admin', 'manager'].includes((session.user as any)?.role))) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
@@ -270,4 +272,3 @@ export async function DELETE(
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
-

@@ -640,7 +640,7 @@ function OrdersContent() {
                 />
               </TableHead>
               <TableHead>Order Info</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Status</TableHead>
@@ -664,17 +664,41 @@ function OrdersContent() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        className="flex flex-col cursor-pointer text-left hover:opacity-80 transition-opacity"
-                        onClick={() => openDetails(order._id)}
-                      >
-                        <span className="font-bold text-primary hover:underline">#{order._id.slice(-8).toUpperCase()}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase">
+                    <div className="flex flex-col gap-1.5 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => openDetails(order._id)}
+                        >
+                          <span className={`font-bold hover:underline ${order.isDuplicate ? 'text-red-500 font-extrabold' : order.isRepeat ? 'text-yellow-600 font-extrabold' : 'text-primary'}`}>
+                            #{order._id.slice(-8).toUpperCase()}
+                          </span>
+                        </button>
+                        {order.isDuplicate ? (
+                          <Badge className="bg-red-500 text-white hover:bg-red-600 border-none text-[9px] px-1 py-0 h-4">Duplicate</Badge>
+                        ) : order.isRepeat ? (
+                          <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 border-none text-[9px] px-1 py-0 h-4">Repeat</Badge>
+                        ) : null}
+                      </div>
+                      
+                      <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
+                        <span className="font-semibold text-slate-900 dark:text-white">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                        <span 
+                          onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}
+                          className="text-muted-foreground hover:text-primary cursor-pointer hover:underline font-medium"
+                        >
+                          {order.shippingAddress?.phone || 'No Phone'}
+                        </span>
+                        <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'No Email'}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase mt-0.5">
                           {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, p') : 'N/A'}
                         </span>
-                      </button>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1.5">
                       <div className="flex flex-wrap gap-1 max-w-[200px]">
                         {order.items?.map((item: any, idx: number) => (
                           <Badge key={idx} variant="outline" className="text-[9px] px-1 py-0 font-normal truncate max-w-[180px]">
@@ -687,12 +711,11 @@ function OrdersContent() {
                           </Badge>
                         ))}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col text-xs">
-                      <span className="font-semibold">{order.user?.name || 'Guest User'}</span>
-                      <span className="text-muted-foreground truncate max-w-[150px]">{order.user?.email || 'N/A'}</span>
+                      {order.internalNote && (
+                        <div className="mt-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-yellow-200/50 font-medium whitespace-pre-line max-w-[200px]" title={order.internalNote}>
+                          Note: {order.internalNote}
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="font-bold">৳{Math.round(order.totalAmount ?? 0)}</TableCell>
@@ -814,6 +837,7 @@ function OrdersContent() {
               totalPages={totalPages}
               onPageChange={(page) => {
                 setCurrentPage(page);
+                fetchOrders(page);
                 const params = new URLSearchParams(searchParams.toString());
                 params.set('page', page.toString());
                 router.push(`?${params.toString()}`);
@@ -854,4 +878,3 @@ export default function OrdersPage() {
     </Suspense>
   );
 }
-

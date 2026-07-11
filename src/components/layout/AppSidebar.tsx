@@ -83,16 +83,28 @@ const data = {
           url: "/admin/orders",
         },
         {
-          title: "Abandoned Carts",
-          url: "/admin/abandoned-carts",
+          title: "Offers / Quotations",
+          url: "/admin/offers",
+        },
+        {
+          title: "Delivery Challans",
+          url: "/admin/chalans",
         },
         {
           title: "Client Bills",
           url: "/admin/bills",
         },
         {
+          title: "Abandoned Carts",
+          url: "/admin/abandoned-carts",
+        },
+        {
           title: "Expenses",
           url: "/admin/expenses",
+        },
+        {
+          title: "Accounts Ledger",
+          url: "/admin/ledger",
         },
       ],
     },

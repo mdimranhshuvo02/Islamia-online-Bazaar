@@ -108,28 +108,22 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
   );
 
   const allImages = useMemo(() => {
-    const hasVariants = product.variants && product.variants.length > 0;
-    if (hasVariants) {
-      const variantImgs = Array.from(
-        new Set(
-          (product.variants || [])
-            .flatMap((v: any) => (v.images && v.images.length > 0) ? v.images : [v.image])
-            .filter(Boolean)
-        )
-      ) as string[];
-      
-      const activeVariantImage = activeVariant?.images?.[0] || activeVariant?.image;
-      if (activeVariantImage) {
-        const idx = variantImgs.indexOf(activeVariantImage);
-        if (idx > -1) {
-          variantImgs.splice(idx, 1);
-        }
-        variantImgs.unshift(activeVariantImage);
+    if (activeVariant) {
+      const activeImages = [
+        ...(activeVariant.images || []),
+        activeVariant.image
+      ].filter(Boolean) as string[];
+      if (activeImages.length > 0) {
+        return activeImages;
       }
-      return variantImgs.length > 0 ? variantImgs : (product.images || []);
     }
     return product.images || [];
-  }, [product.images, product.variants, activeVariant]);
+  }, [product.images, activeVariant]);
+
+  // Reset selected image when active variant changes to avoid out-of-bounds indices
+  useEffect(() => {
+    setSelectedImage(0);
+  }, [activeVariant]);
 
 
   // Auto-select first available options on mount or product change

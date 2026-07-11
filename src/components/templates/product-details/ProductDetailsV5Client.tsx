@@ -83,29 +83,25 @@ export default function ProductDetailsV5Client({ product }: ProductDetailsV5Clie
   );
 
   const allImages = useMemo(() => {
-    const hasVariants = product.variants && product.variants.length > 0;
-    if (hasVariants) {
-      const variantImgs = Array.from(
-        new Set((product.variants || []).map((v: any) => v.image).filter(Boolean))
-      ) as string[];
-      
-      if (activeVariant?.image) {
-        const idx = variantImgs.indexOf(activeVariant.image);
-        if (idx > -1) {
-          variantImgs.splice(idx, 1);
-        }
-        variantImgs.unshift(activeVariant.image);
+    if (activeVariant) {
+      const activeImages = [
+        ...(activeVariant.images || []),
+        activeVariant.image
+      ].filter(Boolean) as string[];
+      if (activeImages.length > 0) {
+        return activeImages;
       }
-      return variantImgs.length > 0 ? variantImgs : (product.images || []);
     }
     return product.images || [];
-  }, [product.images, product.variants, activeVariant?.image]);
+  }, [product.images, activeVariant]);
 
   useEffect(() => {
-    if (activeVariant?.image) {
-      setActiveImage(activeVariant.image);
+    if (allImages && allImages.length > 0) {
+      setActiveImage(allImages[0]);
+    } else {
+      setActiveImage('/placeholder.png');
     }
-  }, [activeVariant]);
+  }, [allImages]);
 
   useEffect(() => {
     if (!product) return;
