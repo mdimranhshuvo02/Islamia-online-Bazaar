@@ -3,10 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import { 
   User, 
-  LayoutDashboard, 
-  LogOut, 
-  Settings,
-  Store
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -68,19 +65,6 @@ export default function AdminTopbar() {
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/admin/dashboard" />} nativeButton={false}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Admin Dashboard</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/" />} nativeButton={false}>
-                <Store className="mr-2 h-4 w-4" />
-                <span>Visit Shop</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/admin/settings" />} nativeButton={false}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 variant="destructive"
