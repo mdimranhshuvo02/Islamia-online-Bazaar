@@ -83,6 +83,10 @@ const data = {
           url: "/admin/orders",
         },
         {
+          title: "Abandoned Carts",
+          url: "/admin/abandoned-carts",
+        },
+        {
           title: "Client Bills",
           url: "/admin/bills",
         },

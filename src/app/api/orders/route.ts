@@ -434,6 +434,15 @@ export async function POST(req: NextRequest) {
 
     await session.commitTransaction();
 
+    // Delete matching abandoned cart on successful purchase
+    try {
+      const cleanPhone = shippingAddress.phone.replace(/\s+/g, '').trim();
+      const AbandonedCart = (await import('@/models/AbandonedCart')).default;
+      await AbandonedCart.findOneAndDelete({ phone: cleanPhone });
+    } catch (e) {
+      console.error('Failed to delete matching abandoned cart:', e);
+    }
+
     // Revalidate products cache to reflect new stock levels across the site
     try {
       const { revalidateTag } = await import('next/cache');
