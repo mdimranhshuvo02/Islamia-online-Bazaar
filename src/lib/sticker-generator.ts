@@ -17,31 +17,43 @@ function generateBarcodeHtml(value: string): string {
   const clean = value.trim().toUpperCase().replace(/[^0-9A-Z\-\.\ ]/g, '');
   const encoded = `*${clean}*`;
 
-  let html = `<div style="display: flex; height: 40px; justify-content: center; align-items: stretch; width: 100%; margin: 5px 0;">`;
-  
+  // Calculate total modules to set viewBox width
+  let totalWidth = 0;
+  for (const char of encoded) {
+    const pat = CODE39_MAP[char] || CODE39_MAP['*'];
+    for (let j = 0; j < 9; j++) {
+      const isWide = pat[j] === '1';
+      totalWidth += isWide ? 3 : 1;
+    }
+    totalWidth += 1; // Inter-character gap
+  }
+
+  let svgHtml = `<svg viewBox="0 0 ${totalWidth} 45" width="100%" height="45" xmlns="http://www.w3.org/2000/svg" style="max-width: 320px; display: block; margin: 0 auto;">`;
+  let currentX = 0;
   for (const char of encoded) {
     const pat = CODE39_MAP[char] || CODE39_MAP['*'];
     for (let j = 0; j < 9; j++) {
       const isBar = j % 2 === 0;
       const isWide = pat[j] === '1';
-      const width = isWide ? '3px' : '1px';
-      const color = isBar ? '#000000' : 'transparent';
-      html += `<div style="width: ${width}; background-color: ${color}; flex-shrink: 0;"></div>`;
+      const width = isWide ? 3 : 1;
+      if (isBar) {
+        svgHtml += `<rect x="${currentX}" y="0" width="${width}" height="45" fill="#000000" />`;
+      }
+      currentX += width;
     }
-    // Inter-character gap
-    html += `<div style="width: 1px; background-color: transparent; flex-shrink: 0;"></div>`;
+    currentX += 1; // Inter-character gap
   }
-  html += `</div>`;
-  return html;
+  svgHtml += `</svg>`;
+  return svgHtml;
 }
 
 export async function printStickerInvoice(order: any, settings: any): Promise<void> {
-  const storeName: string = settings?.siteName || settings?.brandName || 'Islamia Online Bazar';
+  const storeName: string = settings?.siteName || settings?.brandName || 'Islamia Online Bazaar';
   const orderId = String(order.shortId || order._id || '').slice(-8).toUpperCase();
   const createdAt = order.createdAt ? new Date(order.createdAt) : null;
-  const dateStr = createdAt && isValid(createdAt) ? format(createdAt, 'dd/MM/yyyy') : 'N/A';
+  const dateStr = createdAt && isValid(createdAt) ? format(createdAt, 'dd/MM/yyyy hh:mm a') : 'N/A';
   const consignmentId: string = order.shippingDetails?.consignmentId || order.shippingDetails?.trackingId || '';
-  const courierName: string = order.shippingDetails?.courierName || 'Courier';
+  const courierName: string = order.shippingDetails?.courierName || 'Steadfast';
   const items: any[] = Array.isArray(order.items) ? order.items : [];
 
   // Dynamic theme variables
@@ -70,6 +82,10 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
     destructive = getHsl('--destructive', destructive);
   }
 
+  const codAmount = order.paymentStatus === 'Paid' ? 0 : Math.round(order.totalAmount);
+  const trackingUrl = order.shippingDetails?.trackingUrl || `https://steadfast.com.bd/t/${consignmentId}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(trackingUrl)}`;
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -81,10 +97,10 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
           :root {
             --primary: ${primary};
             --primary-foreground: ${primaryForeground};
-            --border: ${border};
-            --muted-foreground: ${mutedForeground};
-            --foreground: ${foreground};
-            --background: ${background};
+            --border: #000000;
+            --muted-foreground: #333333;
+            --foreground: #000000;
+            --background: #ffffff;
             --destructive: ${destructive};
           }
           * {
@@ -101,144 +117,132 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
             background-color: var(--background);
             color: var(--foreground);
             font-size: 11px;
-            line-height: 1.3;
+            line-height: 1.25;
           }
           .sticker-container {
             width: 100mm;
             height: 100mm;
-            padding: 5mm;
+            padding: 4mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            border: 1px solid #000000;
           }
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-          }
-          .store-name {
-            font-size: 14px;
+          .top-header {
+            text-align: center;
             font-weight: 700;
-            color: var(--primary);
-          }
-          .date-badge {
-            text-align: right;
-          }
-          .date-text {
-            font-size: 9px;
-            color: var(--muted-foreground);
-          }
-          .cod-badge {
-            background-color: var(--foreground);
-            color: var(--background);
-            font-size: 8px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 3px;
-            display: inline-block;
-            margin-top: 2px;
-          }
-          .order-id {
-            font-size: 9px;
-            color: var(--muted-foreground);
-            margin-top: 2px;
-          }
-          .divider {
-            border-top: 1px solid var(--border);
-            margin: 6px 0;
-          }
-          .section-title {
-            font-size: 9px;
-            font-weight: 700;
-            color: var(--muted-foreground);
-            text-transform: uppercase;
-          }
-          .customer-name {
             font-size: 13px;
-            font-weight: 700;
-            margin: 2px 0;
-          }
-          .customer-phone {
-            background-color: var(--primary);
-            color: var(--primary-foreground);
-            font-weight: 700;
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            display: inline-block;
-            margin-top: 2px;
-          }
-          .customer-address {
-            font-size: 11px;
-            color: var(--foreground);
-            margin-top: 4px;
-          }
-          .items-list {
-            margin-top: 4px;
-          }
-          .item-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
             margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
-          .item-name {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 10px;
-          }
-          .item-qty {
-            font-weight: 700;
-            flex-shrink: 0;
-          }
-          .amount-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+          .invoice-label {
+            text-align: center;
             font-size: 11px;
-            margin: 4px 0;
-            border-top: 1px dashed var(--muted-foreground);
-            border-bottom: 1px dashed var(--muted-foreground);
-            padding: 4px 0;
-          }
-          .amount-value {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--primary);
-          }
-          .courier-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 9px;
-            color: var(--muted-foreground);
+            color: #333;
             margin-bottom: 4px;
           }
-          .courier-name {
-            font-weight: 700;
-            color: var(--primary);
-            text-transform: uppercase;
-          }
-          .consignment-warning {
-            background-color: var(--background);
-            border: 1px solid var(--destructive);
-            color: var(--destructive);
-            border-radius: 4px;
-            padding: 6px;
+          .barcode-wrapper {
             text-align: center;
-            font-weight: 700;
-            font-size: 9px;
-          }
-          .barcode-container {
-            margin-top: 2px;
-            text-align: center;
+            margin-bottom: 4px;
           }
           .barcode-text {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             margin-top: 2px;
+            letter-spacing: 1px;
+          }
+          .grid-container {
+            display: flex;
+            border: 1.5px solid #000000;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            overflow: hidden;
+          }
+          .qr-box {
+            width: 35%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-right: 1.5px solid #000000;
+            background-color: #ffffff;
+          }
+          .qr-box img {
+            width: 100%;
+            height: auto;
+            max-width: 80px;
+            display: block;
+          }
+          .info-table {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+          }
+          .table-header {
+            background-color: #000000;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 11px;
+            text-align: center;
+            padding: 3px;
+            text-transform: uppercase;
+          }
+          .table-row {
+            display: flex;
+            border-bottom: 1px solid #000000;
+            font-size: 10px;
+          }
+          .table-row:last-child {
+            border-bottom: none;
+          }
+          .table-cell {
+            padding: 3px 5px;
+            flex: 1;
+          }
+          .table-cell-bold {
+            font-weight: 700;
+          }
+          .table-cell-split {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+          }
+          .recipient-details {
+            font-size: 11px;
+            margin-bottom: 6px;
+            line-height: 1.3;
+          }
+          .recipient-name {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 1px;
+          }
+          .recipient-phone {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 2px;
+          }
+          .items-section {
+            font-size: 9px;
+            border-top: 1px dashed #000000;
+            padding-top: 4px;
+            margin-top: auto;
+          }
+          .item-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1px;
+          }
+          .footer-brand {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+            color: #555555;
+            margin-top: 4px;
+            border-top: 1.5px solid #000000;
+            padding-top: 3px;
           }
           @media print {
             body {
@@ -246,9 +250,10 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
               height: 100mm;
             }
             .sticker-container {
-              padding: 5mm;
               width: 100mm;
               height: 100mm;
+              padding: 4mm;
+              border: 1px solid #000000;
             }
             @page {
               size: 100mm 100mm;
@@ -260,64 +265,72 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
       <body>
         <div class="sticker-container">
           <div>
-            <div class="header">
-              <div>
-                <div class="store-name">${storeName}</div>
-                <div class="order-id">Order ID: #${orderId}</div>
-              </div>
-              <div class="date-badge">
-                <div class="date-text">${dateStr}</div>
-                <div class="cod-badge">COD</div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="section-title">Ship To:</div>
-            <div class="customer-name">${order.shippingAddress?.fullName || 'Customer'}</div>
-            <div class="customer-phone">${order.shippingAddress?.phone || ''}</div>
-            <div class="customer-address">
-              ${order.shippingAddress?.street || ''}, ${order.shippingAddress?.city || ''}
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="section-title">Items (${items.length}):</div>
-            <div class="items-list">
-              ${items.slice(0, 3).map(item => `
-                <div class="item-row">
-                  <span class="item-name">• ${item.name}${item.size ? ` (${item.size})` : ''}</span>
-                  <span class="item-qty">Qty: ${item.quantity}</span>
-                </div>
-              `).join('')}
-              ${items.length > 3 ? `
-                <div style="font-size: 9px; color: var(--muted-foreground); margin-top: 2px;">
-                  +${items.length - 3} more item(s)
-                </div>
-              ` : ''}
-            </div>
-          </div>
-
-          <div>
-            <div class="amount-row">
-              <span>Amount to Collect:</span>
-              <span class="amount-value">৳${Math.round(order.totalAmount)}</span>
-            </div>
+            <div class="top-header">RTN &gt; ${storeName} - ${orderId}</div>
+            <div class="invoice-label">Invoice: #${orderId}</div>
 
             ${consignmentId ? `
-              <div class="courier-info">
-                <div>Courier: <span class="courier-name">${courierName}</span></div>
-                <div>Consignment ID</div>
-              </div>
-              <div class="barcode-container">
+              <div class="barcode-wrapper">
                 ${generateBarcodeHtml(consignmentId)}
                 <div class="barcode-text">${consignmentId}</div>
               </div>
             ` : `
-              <div class="consignment-warning">
-                No Courier Booking / Consignment ID Missing
+              <div style="border: 1px solid var(--destructive); color: var(--destructive); padding: 4px; text-align: center; font-weight: 700; font-size: 9px; margin-bottom: 4px;">
+                NO COURIER BOOKING / CONSIGNMENT ID MISSING
               </div>
             `}
+
+            <div class="grid-container">
+              <div class="qr-box">
+                ${consignmentId ? `<img src="${qrCodeUrl}" alt="QR Link" />` : `<div style="font-size: 8px; text-align: center; color: #888;">No QR Code</div>`}
+              </div>
+              <div class="info-table">
+                <div class="table-header">${courierName} Courier</div>
+                <div class="table-row">
+                  <div class="table-cell table-cell-bold">P: ${order.shippingAddress?.city || 'N/A'}</div>
+                </div>
+                <div class="table-row">
+                  <div class="table-cell">D: ${order.shippingAddress?.state || order.shippingAddress?.city || 'N/A'}</div>
+                </div>
+                <div class="table-row">
+                  <div class="table-cell table-cell-bold" style="background-color: #f3f4f6;">
+                    ${order.shippingAddress?.city || 'N/A'}
+                  </div>
+                </div>
+                <div class="table-row">
+                  <div class="table-cell table-cell-split">
+                    <span style="font-weight: 700;">COD</span>
+                    <span style="font-weight: 700;">৳${codAmount}</span>
+                  </div>
+                </div>
+                <div class="table-row">
+                  <div class="table-cell" style="font-size: 8px; color: #555;">WGT# 0.5 KG</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="recipient-details">
+              <div class="recipient-name">${order.shippingAddress?.fullName || 'Customer'}</div>
+              <div class="recipient-phone">${order.shippingAddress?.phone || ''}</div>
+              <div>${order.shippingAddress?.street || ''}, ${order.shippingAddress?.city || ''}</div>
+            </div>
+          </div>
+
+          <div class="items-section">
+            <div style="font-weight: 700; margin-bottom: 2px;">ITEMS (${items.length}):</div>
+            ${items.slice(0, 3).map(item => `
+              <div class="item-line">
+                <span>• ${item.name}${item.size ? ` (${item.size})` : ''}</span>
+                <span style="font-weight: 700;">Qty: ${item.quantity}</span>
+              </div>
+            `).join('')}
+            ${items.length > 3 ? `
+              <div style="font-size: 8px; color: #555;">+${items.length - 3} more item(s)</div>
+            ` : ''}
+          </div>
+
+          <div class="footer-brand">
+            <span>Date: ${dateStr}</span>
+            <span style="font-weight: 700; text-transform: uppercase;">${storeName}</span>
           </div>
         </div>
       </body>
