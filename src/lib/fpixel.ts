@@ -126,7 +126,14 @@ export const fbEvent = (
     })
       .then(res => {
         if (!res.ok && process.env.NODE_ENV === 'development') {
-          res.json().then(err => console.error('[FB CAPI] Server Error:', err?.error || err?.message || JSON.stringify(err)));
+          res.json().then(err => {
+            const errMsg = err?.error || err?.message || '';
+            if (errMsg.includes('Missing Facebook config')) {
+              // Gracefully ignore configuration warnings in development
+              return;
+            }
+            console.error('[FB CAPI] Server Error:', errMsg || JSON.stringify(err));
+          });
         } else if (process.env.NODE_ENV === 'development') {
           console.log(`[FB CAPI] Event Sent: ${finalEventName}`);
         }

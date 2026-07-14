@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { Suspense } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import ReviewsSection from '@/components/storefront/ReviewsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -305,7 +306,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
     }
   };
 
-  const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null);
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -313,7 +314,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
         const res = await fetch('/api/settings');
         if (res.ok) {
           const data = await res.json();
-          setWhatsappNumber(data.socialLinks?.whatsapp || null);
+          setSettings(data);
         }
       } catch (err) {
         console.error('Error fetching settings:', err);
@@ -433,6 +434,12 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes driftZoom {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(0.96); }
+        }
+      `}} />
       {/* Gallery Section */}
       <div className="space-y-4">
         <div className="relative group/zoom">
@@ -585,6 +592,19 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           </div>
         </div>
 
+        <div className="pt-2 mb-2 flex justify-between border-t text-sm">
+          <div>Product Code: <strong className="font-bold">{displaySku || 'N/A'}</strong></div>
+          <div>Availability: 
+            <strong>
+              {displayStock > 0 ? (
+                <span className="text-emerald-600 font-bold ml-1">In Stock</span>
+              ) : (
+                <span className="text-rose-600 font-bold ml-1">Out Of Stock</span>
+              )}
+            </strong>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-1">
           <div className="flex items-baseline gap-4">
             <span className="text-3xl font-extrabold text-primary">
@@ -596,137 +616,134 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${displayStock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {displayStock > 0 ? `In stock (${displayStock} units)` : 'Out of stock'}
-            </span>
-            {displaySku && (
-              <span className="text-xs text-muted-foreground">| SKU: {displaySku}</span>
-            )}
-          </div>
         </div>
 
-        <Separator />
+        {(uniqueColors.length > 0 || uniqueSizes.length > 0 || (product.attributes && product.attributes.length > 0)) && (
+          <>
+            <Separator />
 
-        {/* Dynamic Content Spacer */}
-        <div className="space-y-6">
-          {/* Selection Options */}
-          <div className="space-y-6">
-            {/* Colors Selection */}
-            {uniqueColors.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold uppercase tracking-wider">Color:</span>
-                  <span className="text-sm text-primary font-medium">{selectedColor}</span>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {uniqueColors.map((color) => {
-                    const isOutOfStock = product.variants
-                      ?.filter((v: any) => v.color === color)
-                      .every((v: any) => (v.stock || 0) <= 0);
+            {/* Dynamic Content Spacer */}
+            <div className="space-y-6">
+              {/* Selection Options */}
+              <div className="space-y-6">
+                {/* Colors Selection */}
+                {uniqueColors.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold uppercase tracking-wider">Color:</span>
+                      <span className="text-sm text-primary font-medium">{selectedColor}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {uniqueColors.map((color) => {
+                        const isOutOfStock = product.variants
+                          ?.filter((v: any) => v.color === color)
+                          .every((v: any) => (v.stock || 0) <= 0);
 
-                    // Find variant that matches this color and has an image
-                    const variantWithImage = product.variants?.find(
-                      (v: any) => v.color === color && (v.image || (v.images && v.images.length > 0))
-                    );
-                    const imageUrl = variantWithImage?.images?.[0] || variantWithImage?.image;
+                        // Find variant that matches this color and has an image
+                        const variantWithImage = product.variants?.find(
+                          (v: any) => v.color === color && (v.image || (v.images && v.images.length > 0))
+                        );
+                        const imageUrl = variantWithImage?.images?.[0] || variantWithImage?.image;
 
-                    return (
-                      <button
-                        key={color}
-                        disabled={isOutOfStock}
-                        onClick={() => setSelectedColor(color)}
-                        title={color}
-                        className={`relative rounded-lg overflow-hidden transition-all duration-200 border-2 ${
-                          selectedColor === color
-                            ? 'border-primary ring-2 ring-primary/20 scale-105 shadow-md'
-                            : isOutOfStock
-                              ? 'border-dashed border-muted bg-muted/20 opacity-40 cursor-not-allowed'
-                              : 'border-muted hover:border-primary/50 hover:scale-102'
-                        } ${imageUrl ? 'p-0.5 w-14 h-14' : 'px-4 py-2 text-xs font-bold'}`}
-                      >
-                        {imageUrl ? (
-                          <div className="relative w-full h-full rounded-md overflow-hidden bg-white">
-                            <Image
-                              src={imageUrl}
-                              alt={color}
-                              fill
-                              sizes="56px"
-                              className="object-contain p-0.5"
-                            />
-                            {isOutOfStock && (
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                <span className="text-[8px] font-black uppercase text-white tracking-tighter">Out</span>
+                        return (
+                          <button
+                            key={color}
+                            disabled={isOutOfStock}
+                            onClick={() => setSelectedColor(color)}
+                            title={color}
+                            className={`relative rounded-lg overflow-hidden transition-all duration-200 border-2 ${
+                              selectedColor === color
+                                ? 'border-primary ring-2 ring-primary/20 scale-105 shadow-md'
+                                : isOutOfStock
+                                  ? 'border-dashed border-muted bg-muted/20 opacity-40 cursor-not-allowed'
+                                  : 'border-muted hover:border-primary/50 hover:scale-102'
+                            } ${imageUrl ? 'p-0.5 w-14 h-14' : 'px-4 py-2 text-xs font-bold'}`}
+                          >
+                            {imageUrl ? (
+                              <div className="relative w-full h-full rounded-md overflow-hidden bg-white">
+                                <Image
+                                  src={imageUrl}
+                                  alt={color}
+                                  fill
+                                  sizes="56px"
+                                  className="object-contain p-0.5"
+                                />
+                                {isOutOfStock && (
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <span className="text-[8px] font-black uppercase text-white tracking-tighter">Out</span>
+                                  </div>
+                                )}
                               </div>
+                            ) : (
+                              <>
+                                {color}
+                                {isOutOfStock && <span className="block text-[8px] mt-0.5 opacity-50">Sold Out</span>}
+                              </>
                             )}
-                          </div>
-                        ) : (
-                          <>
-                            {color}
-                            {isOutOfStock && <span className="block text-[8px] mt-0.5 opacity-50">Sold Out</span>}
-                          </>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            {/* Sizes Selection */}
-            {uniqueSizes.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold uppercase tracking-wider">Size:</span>
-                  <span className="text-sm text-primary font-medium">{selectedSize || 'Select a size'}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueSizes.map((sizeName, i) => {
-                    const isAvailable = availableSizes.includes(sizeName);
-                    return (
-                      <button
-                        key={i}
-                        disabled={!isAvailable}
-                        onClick={() => setSelectedSize(sizeName)}
-                        className={`min-w-[48px] h-12 flex flex-col items-center justify-center rounded-xl border-2 font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed ${selectedSize === sizeName
-                          ? 'border-primary bg-primary/5 ring-4 ring-primary/10 text-primary'
-                          : isAvailable
-                            ? 'border-muted hover:border-primary/30 text-muted-foreground'
-                            : 'border-muted/50 border-dashed text-muted-foreground/30'
-                          }`}
-                      >
-                        <span className="text-sm">{sizeName}</span>
-                        {!isAvailable && <span className="text-[8px] font-black uppercase text-destructive mt-[-2px]">Out</span>}
-                      </button>
-                    );
-                  })}
-                </div>
+                {/* Sizes Selection */}
+                {uniqueSizes.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold uppercase tracking-wider">Size:</span>
+                      <span className="text-sm text-primary font-medium">{selectedSize || 'Select a size'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {uniqueSizes.map((sizeName, i) => {
+                        const isAvailable = availableSizes.includes(sizeName);
+                        return (
+                          <button
+                            key={i}
+                            disabled={!isAvailable}
+                            onClick={() => setSelectedSize(sizeName)}
+                            className={`min-w-[48px] h-12 flex flex-col items-center justify-center rounded-xl border-2 font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed ${selectedSize === sizeName
+                              ? 'border-primary bg-primary/5 ring-4 ring-primary/10 text-primary'
+                              : isAvailable
+                                ? 'border-muted hover:border-primary/30 text-muted-foreground'
+                                : 'border-muted/50 border-dashed text-muted-foreground/30'
+                              }`}
+                          >
+                            <span className="text-sm">{sizeName}</span>
+                            {!isAvailable && <span className="text-[8px] font-black uppercase text-destructive mt-[-2px]">Out</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Regular Attributes */}
-          {product.attributes && product.attributes.length > 0 && (
-            <div className="space-y-3 pt-2">
-              {product.attributes?.map((attr: any, i: number) => (
-                <div key={i} className="flex items-center gap-4">
-                  <span className="text-xs font-bold min-w-[80px] uppercase tracking-wider text-muted-foreground">{attr.key}:</span>
-                  <span className="text-xs font-medium">{attr.value}</span>
+              {/* Regular Attributes */}
+              {product.attributes && product.attributes.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  {product.attributes?.map((attr: any, i: number) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <span className="text-xs font-bold min-w-[80px] uppercase tracking-wider text-muted-foreground">{attr.key}:</span>
+                      <span className="text-xs font-medium">{attr.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-4 py-8 sm:py-6 border-t">
+        <div className="flex flex-col gap-4 py-6 border-t">
           {/* Row 1: Quantity and Wishlist */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border rounded-full overflow-hidden h-12 bg-muted/50">
+          <div className="flex items-center justify-between gap-4 border-t pt-4">
+            <span className="text-base font-bold">Quantity</span>
+            <div className="flex items-center border border-input rounded-md overflow-hidden h-11 bg-muted/20">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-full rounded-none px-4 hover:bg-muted"
+                className="h-full rounded-none px-3 hover:bg-muted"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 aria-label="Decrease quantity"
               >
@@ -736,7 +753,7 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-full rounded-none px-4 hover:bg-muted"
+                className="h-full rounded-none px-3 hover:bg-muted"
                 onClick={() => setQuantity(Math.min(displayStock || 0, quantity + 1))}
                 disabled={quantity >= (displayStock || 0)}
                 aria-label="Increase quantity"
@@ -744,11 +761,11 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-
+            
             <Button
               size="icon"
               variant="outline"
-              className="h-12 w-12 rounded-full transition-all hover:scale-110 active:scale-95 flex-shrink-0"
+              className="h-11 w-11 rounded-full transition-all hover:scale-110 active:scale-95 flex-shrink-0"
               onClick={handleFavorite}
               aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
@@ -757,69 +774,98 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
           </div>
 
           {/* Row 2: Add to Cart and Buy Now */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mt-2">
             <Button
-              size="lg"
-              variant="outline"
-              className="h-14 rounded-full font-black text-[10px] sm:text-sm uppercase tracking-[0.1em] sm:tracking-[0.2em] border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all hover:scale-[1.02] active:scale-95"
-              onClick={handleAddToCart}
-              disabled={(displayStock || 0) === 0}
-            >
-              <ShoppingCart className="mr-2 h-5 w-5 hidden sm:block" /> Add to Cart
-            </Button>
-            <Button
-              size="lg"
-              className="h-14 rounded-full font-black text-[10px] sm:text-sm uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/25"
+              style={{
+                backgroundColor: '#D35400',
+                color: '#ffffff',
+                borderColor: '#D35400',
+                borderRadius: '4px',
+                animation: 'driftZoom 2s ease-in-out infinite'
+              }}
+              className="h-14 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-lg active:scale-95 cursor-pointer"
               onClick={handleBuyNow}
               disabled={(displayStock || 0) === 0}
             >
-              Buy Now
+              <ShoppingCart className="h-5 w-5" />
+              <span>অর্ডার করুন</span>
+            </Button>
+            
+            <Button
+              style={{
+                backgroundColor: '#F1C40F',
+                color: '#ffffff',
+                borderColor: '#F1C40F',
+                borderRadius: '4px'
+              }}
+              className="h-14 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-lg active:scale-95 cursor-pointer"
+              onClick={handleAddToCart}
+              disabled={(displayStock || 0) === 0}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              <span>কার্টে রাখুন</span>
             </Button>
           </div>
 
-          {/* Row 3: WhatsApp */}
-          {whatsappNumber && (
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full h-14 rounded-full font-black text-xs uppercase tracking-[0.2em] border-2 border-[#075E54] text-[#075E54] hover:bg-[#075E54] hover:text-white transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
-              onClick={() => {
-                const message = encodeURIComponent(`Hi, I'm interested in ${product.name}. Price: ${CURRENCY_SYMBOL}${Math.round(displaySalePrice || displayPrice)}`);
+          {/* Support Section */}
+          <div className="p-3 mt-4 text-center border-2 border-dashed border-muted/80 rounded-md">
+            <div className="text-sm font-medium">এই পণ্য সম্পর্কে প্রশ্ন আছে? অনুগ্রহপূর্বক কল করুন:</div>
+            <a href={`tel:${settings?.contact?.phone || '+8801901636779'}`} className="text-rose-600 font-bold text-xl mt-1.5 flex items-center justify-center gap-2 hover:underline">
+              <span>📞</span> {settings?.contact?.phone || '+8801901636779'}
+            </a>
+          </div>
 
-                // Parse whatsappNumber robustly
-                let cleanNumber = (whatsappNumber || '').trim();
-                let phone = '';
-
-                if (cleanNumber.includes('wa.me/')) {
-                  const parts = cleanNumber.split('wa.me/');
-                  phone = parts[parts.length - 1];
-                } else if (cleanNumber.includes('whatsapp.com/')) {
-                  const parts = cleanNumber.split('phone=');
-                  if (parts.length > 1) {
-                    phone = parts[1];
-                  } else {
-                    phone = cleanNumber.replace(/[^0-9]/g, '');
-                  }
-                } else {
-                  phone = cleanNumber.replace(/[^0-9]/g, '');
-                }
-
-                // Strip any query parameters or non-digit chars
-                phone = phone.split('?')[0].replace(/[^0-9]/g, '');
-
-                window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-              }}
-            >
-              <svg
-                className="h-5 w-5 fill-current"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+          {/* Social Buttons */}
+          <div className="flex gap-4 mt-2 justify-center">
+            {settings?.socialLinks?.facebook ? (
+              <a 
+                href={settings.socialLinks.facebook} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center gap-2 bg-[#0084FF] text-white font-bold py-2.5 px-6 rounded hover:opacity-90 transition-all text-sm w-1/2 text-center"
               >
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.067 2.877 1.215 3.076.149.198 2.095 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-              Order via WhatsApp
-            </Button>
-          )}
+                💬 Messenger
+              </a>
+            ) : (
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center gap-2 bg-[#0084FF] text-white font-bold py-2.5 px-6 rounded hover:opacity-90 transition-all text-sm w-1/2 text-center"
+              >
+                💬 Messenger
+              </a>
+            )}
+            <a 
+              href={`https://wa.me/${(settings?.socialLinks?.whatsapp || settings?.contact?.phone || '8801901636779').replace(/[^0-9]/g, '')}?text=Hello,%20I'm%20interested%20in%20ordering%20${encodeURIComponent(product.name)}`}
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold py-2.5 px-6 rounded hover:opacity-90 transition-all text-sm w-1/2 text-center"
+            >
+              🟢 WhatsApp
+            </a>
+          </div>
+
+          {/* Delivery Charge Table */}
+          <div className="mt-4">
+            <table className="w-full border-collapse border border-muted text-center text-xs">
+              <thead>
+                <tr className="bg-muted">
+                  <th colSpan={2} className="border border-muted p-2 font-bold uppercase tracking-wider text-muted-foreground">Delivery Charge</th>
+                </tr>
+                <tr className="bg-muted/50">
+                  <th className="border border-muted p-2 w-1/2 font-semibold">Inside Dhaka</th>
+                  <th className="border border-muted p-2 w-1/2 font-semibold">Outside Dhaka</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border border-muted p-2 font-medium">TK {settings?.deliveryChargeInsideDhaka != null ? settings.deliveryChargeInsideDhaka : 80}</td>
+                  <td className="border border-muted p-2 font-medium">TK {settings?.deliveryChargeOutsideDhaka != null ? settings.deliveryChargeOutsideDhaka : 130}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
 
@@ -828,12 +874,18 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
       {/* Tabs Section for Description & Reviews */}
       <div className="col-span-full mt-16">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 mb-8 h-auto flex flex-wrap">
             <TabsTrigger
               value="description"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
             >
               Description
+            </TabsTrigger>
+            <TabsTrigger
+              value="delivery"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-4 font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:text-foreground"
+            >
+              Delivery & Return Policy
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
@@ -849,6 +901,31 @@ export default function ProductDetailsClient({ product }: ProductDetailsClientPr
                 className="ProseMirror max-w-none text-muted-foreground"
                 dangerouslySetInnerHTML={{ __html: generateHtml(product.description) }}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="delivery" className="animate-in fade-in-50 duration-500">
+            <div className="space-y-4 text-muted-foreground text-sm leading-relaxed max-w-2xl bg-card p-6 rounded-lg border border-border">
+              <div>
+                <p className="font-bold flex items-center gap-2 text-foreground text-base">🚚 ডেলিভারি পদ্ধতি-</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>🏙️ ঢাকার মধ্যেঃ হোম ডেলিভারি। পণ্য হাতে পাবার পর দাম পরিশোধ করুন।</li>
+                  <li>🏡 ঢাকার বাইরেঃ দেশের সকল জেলা-উপজেলা এবং ইউনিয়ন পর্যায়ে পাচ্ছেন হোম ডেলিভারি সুবিধা। পণ্য হাতে পাবার পর দাম পরিশোধ করুন।</li>
+                </ul>
+              </div>
+              <div className="pt-2">
+                <p className="font-bold flex items-center gap-2 text-foreground text-base">💰 ডেলিভারী চার্জ-</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>ঢাকার মধ্যেঃ ৮০/- টাকা</li>
+                  <li>ঢাকার বাইরেঃ ১৩০/- টাকা</li>
+                </ul>
+              </div>
+              <div className="pt-2">
+                <p className="font-bold flex items-center gap-2 text-foreground text-base">🔄 রিটার্ন পলিসি-</p>
+                <p className="mt-2">
+                  প্রোডাক্টটি অবশ্যই ডেলিভারি ম্যানের সামনে দেখে-বুঝে নিবেন। প্রোডাক্ট পছন্দ না হলে কিংবা কেան সমস্যা থাকলে আমাদের হেল্পলাইনে কল করে আপনার সমস্যার কথা জানাবেন। অন্যথায় প্রোডাক্ট আনবক্সিং করার সময় অবশ্যই ভিডিও করে সেটা আমাদের পাঠাবেন। সমস্যা থাকলে আমরা সেটা এক্সচেঞ্জ করে দিবো তবে আপনাকে পুনরায় ডেলিভারি চার্জ দিয়ে প্রোডাক্টটি রিসিভ করতে হবে।
+                </p>
+              </div>
             </div>
           </TabsContent>
 
