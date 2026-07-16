@@ -48,14 +48,15 @@ const productSchema = z.object({
   name: z.string().min(3, 'Name is required'),
   slug: z.string().min(3, 'Slug is required'),
   description: z.string().min(10, 'Description is required'),
-  price: z.union([z.coerce.number().positive('Price must be greater than zero'), z.literal('')]),
+  // Price is optional at the top level — required only when no variants exist (validated via superRefine)
+  price: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   purchasePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   discountRate: z.union([z.coerce.number().min(0).max(100), z.literal('')]).optional(),
   salePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
-  sku: z.string().min(3, 'SKU is required'),
+  sku: z.string().optional(),
   stock: z.union([z.coerce.number().int().min(0, 'Stock must be at least 0'), z.literal('')]),
   categories: z.array(z.string()).min(1, 'Select at least one category'),
-  images: z.array(z.string()).min(1, 'Upload at least one image'),
+  images: z.array(z.string()).default([]),
   isFeatured: z.boolean(),
   isNewArrival: z.boolean(),
   isFlashSale: z.boolean().optional(),
@@ -69,6 +70,7 @@ const productSchema = z.object({
     images: z.array(z.string()).default([]),
     sizes: z.array(z.object({
       size: z.string().optional(),
+      // Price is optional in schema; required-when-variants logic handled by superRefine
       price: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
       purchasePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
       discountRate: z.union([z.coerce.number().min(0).max(100), z.literal('')]).optional(),
@@ -77,6 +79,68 @@ const productSchema = z.object({
       sku: z.string().optional(),
     })).default([]),
   })).default([]),
+}).superRefine((data, ctx) => {
+  const hasVariants = data.variants && data.variants.length > 0;
+
+  // Validation Check: ensure at least one image is uploaded, either in gallery or in a variant
+  const hasMainImages = data.images && data.images.length > 0;
+  const hasVariantImages = data.variants && data.variants.some(v => v.images && v.images.length > 0);
+  if (!hasMainImages && !hasVariantImages) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Upload at least one image (either in Gallery Images or in a color variant)',
+      path: ['images'],
+    });
+  }
+
+  if (!hasVariants) {
+    // No variants: main price is mandatory and must be > 0
+    const priceVal = data.price === '' || data.price === undefined ? 0 : Number(data.price);
+    if (!priceVal || priceVal <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Price is required and must be greater than zero',
+        path: ['price'],
+      });
+    }
+    // No variants: main SKU is mandatory
+    if (!data.sku || data.sku.trim().length < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'SKU is required and must be at least 3 characters',
+        path: ['sku'],
+      });
+    }
+  } else {
+    // Has variants: each size inside each variant must have a price > 0 and SKU
+    data.variants.forEach((variant, vIdx) => {
+      // Each color variant must have at least one image
+      if (!variant.images || variant.images.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Upload at least one image for this color variant',
+          path: ['variants', vIdx, 'images'],
+        });
+      }
+      (variant.sizes || []).forEach((size, sIdx) => {
+        const sizePrice = size.price === '' || size.price === undefined ? 0 : Number(size.price);
+        if (!sizePrice || sizePrice <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Price is required for each variant size',
+            path: ['variants', vIdx, 'sizes', sIdx, 'price'],
+          });
+        }
+        if (!size.sku || size.sku.trim().length < 3) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'SKU is required (min 3 chars)',
+            path: ['variants', vIdx, 'sizes', sIdx, 'sku'],
+          });
+        }
+      });
+    });
+  }
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -106,7 +170,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
     sku: initialData?.sku || '',
     stock: initialData?.stock ?? '',
     categories: initialData?.categories?.map((c: any) => typeof c === 'object' ? c._id : c) || [],
-    images: initialData?.images || [],
+    images: (() => {
+      const mainImages = initialData?.images || [];
+      if (mainImages.length === 1 && initialData?.variants && initialData.variants.length > 0) {
+        const variantImages: string[] = [];
+        initialData.variants.forEach((v: any) => {
+          if (v.images && Array.isArray(v.images) && v.images.length > 0) {
+            variantImages.push(v.images[0]);
+          } else if (v.image) {
+            variantImages.push(v.image);
+          }
+        });
+        if (variantImages.length > 0 && variantImages[0] === mainImages[0]) {
+          return [];
+        }
+      }
+      return mainImages;
+    })(),
     isPublished: initialData?.isPublished ?? true,
     isFeatured: initialData?.isFeatured ?? false,
     isNewArrival: initialData?.isNewArrival ?? false,
@@ -214,8 +294,17 @@ export function ProductForm({ initialData }: ProductFormProps) {
       });
     });
 
+    let finalImages = values.images || [];
+    if (finalImages.length === 0) {
+      const firstVariantWithImages = (values.variants || []).find((v: any) => v.images && v.images.length > 0);
+      if (firstVariantWithImages && firstVariantWithImages.images?.[0]) {
+        finalImages = [firstVariantWithImages.images[0]];
+      }
+    }
+
     const cleanValues = {
       ...values,
+      images: finalImages,
       price: values.price === '' ? 0 : Number(values.price),
       purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
       salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
@@ -308,7 +397,19 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-10">
+      <form
+          onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.error('Form validation errors:', errors);
+            // Show a friendly error toast when validation fails silently
+            const hasVariants = (form.getValues('variants') || []).length > 0;
+            if (hasVariants) {
+              toast.error('Please fill in all mandatory variant details (Price and SKU for each size).');
+            } else {
+              toast.error('Please fix the form errors before saving.');
+            }
+          })}
+          className="space-y-8 pb-10"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -365,9 +466,15 @@ export function ProductForm({ initialData }: ProductFormProps) {
                     name="sku"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>SKU</FormLabel>
+                        <FormLabel>
+                          SKU
+                          {variantFields.length > 0
+                            ? <span className="ml-1 text-xs font-normal text-muted-foreground">(Optional)</span>
+                            : <span className="ml-1 text-xs font-normal text-destructive">*</span>
+                          }
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="STK-001" {...field} />
+                          <Input placeholder="STK-001" {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -553,11 +660,17 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                 <ImageUpload 
                                   onUpload={(url) => {
                                     form.setValue(`variants.${colorIndex}.images`, [...colorImages, url]);
+                                    form.trigger(`variants.${colorIndex}.images` as any);
                                   }} 
                                   compact 
                                   className="h-16 w-16"
                                 />
                               </div>
+                              {(form.formState.errors as any)?.variants?.[colorIndex]?.images && (
+                                <p className="text-xs text-destructive mt-1">
+                                  {(form.formState.errors as any)?.variants?.[colorIndex]?.images?.message}
+                                </p>
+                              )}
                             </div>
                           </div>
 
@@ -612,20 +725,31 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                         />
                                       </div>
                                       <div>
-                                        <Label className="text-xs font-medium text-muted-foreground">Price (Tk)</Label>
+                                        <Label className="text-xs font-medium text-muted-foreground">
+                                          Price (Tk) <span className="text-destructive">*</span>
+                                        </Label>
                                         <Input
                                           type="number"
                                           value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.price`) ?? ''}
-                                          className="h-9 mt-1"
+                                          className={`h-9 mt-1 ${
+                                            (form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.price
+                                              ? 'border-destructive focus-visible:ring-destructive'
+                                              : ''
+                                          }`}
                                           onChange={(e) => {
                                             const val = e.target.value === '' ? '' : (parseFloat(e.target.value) || 0);
-                                            form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.price`, val);
+                                            form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.price`, val, { shouldValidate: form.formState.isSubmitted });
                                             const disc = form.getValues(`variants.${colorIndex}.sizes.${sizeIndex}.discountRate`) || 0;
                                             if (disc > 0 && val !== '') {
                                               form.setValue(`variants.${colorIndex}.sizes.${sizeIndex}.salePrice`, Math.round(val * (1 - disc / 100)));
                                             }
                                           }}
                                         />
+                                        {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.price && (
+                                          <p className="text-[0.75rem] font-medium text-destructive mt-1">
+                                            {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.price?.message}
+                                          </p>
+                                        )}
                                       </div>
                                       <div>
                                         <Label className="text-xs font-medium text-muted-foreground">Purchase (Tk)</Label>
@@ -652,12 +776,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                         />
                                       </div>
                                       <div className="col-span-2 md:col-span-1">
-                                        <Label className="text-xs font-medium text-muted-foreground">SKU</Label>
+                                        <Label className="text-xs font-medium text-muted-foreground">
+                                          SKU <span className="text-destructive">*</span>
+                                        </Label>
                                         <Input
                                           {...form.register(`variants.${colorIndex}.sizes.${sizeIndex}.sku` as const)}
                                           placeholder="SKU"
-                                          className="h-9 mt-1"
+                                          className={`h-9 mt-1 ${
+                                            (form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku
+                                              ? 'border-destructive focus-visible:ring-destructive'
+                                              : ''
+                                          }`}
                                         />
+                                        {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku && (
+                                          <p className="text-[0.75rem] font-medium text-destructive mt-1">
+                                            {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku?.message}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
 
@@ -716,13 +851,25 @@ export function ProductForm({ initialData }: ProductFormProps) {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Regular Price (Tk)</FormLabel>
+              {variantFields.length > 0 && (
+                <div className="mb-4 flex items-center gap-2 rounded-md bg-muted/60 border border-muted px-4 py-2 text-xs text-muted-foreground">
+                  <span className="font-semibold text-primary">ℹ️ Variants detected:</span>
+                  The prices below are <strong>optional</strong> — variant prices will be used instead.
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Regular Price (Tk)
+                        {variantFields.length > 0
+                          ? <span className="ml-1 text-xs font-normal text-muted-foreground">(Optional)</span>
+                          : <span className="ml-1 text-xs font-normal text-destructive">*</span>
+                        }
+                      </FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 

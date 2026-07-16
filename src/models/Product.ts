@@ -49,7 +49,10 @@ const ProductSchema: Schema<IProduct> = new Schema(
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
-    price: { type: Number, required: true, min: [0, 'Price cannot be negative'] },
+    price: { 
+      type: Number, 
+      min: [0, 'Price cannot be negative'] 
+    },
     salePrice: { 
       type: Number,
       min: [0, 'Sale price cannot be negative'],
@@ -59,7 +62,11 @@ const ProductSchema: Schema<IProduct> = new Schema(
       min: [0, 'Purchase price cannot be negative'],
     },
     discountRate: { type: Number },
-    sku: { type: String, required: true, unique: true },
+    sku: { 
+      type: String, 
+      unique: true,
+      sparse: true
+    },
     stock: { type: Number, required: true, default: 0, min: [0, 'Stock cannot be negative'] },
     categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
     tags: [{ type: String }],
@@ -126,6 +133,10 @@ ProductSchema.pre('validate', function(this: any) {
   }
 });
 
-const Product: Model<IProduct> = mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+if (mongoose.models && mongoose.models.Product) {
+  delete (mongoose.models as any).Product;
+}
+
+const Product: Model<IProduct> = mongoose.model<IProduct>('Product', ProductSchema);
 
 export default Product;

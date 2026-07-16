@@ -96,9 +96,11 @@ export async function POST(req: NextRequest) {
     const parsedDiscountRate = Number.isFinite(rawDiscountRate) ? rawDiscountRate : undefined;
 
     // Validate required fields and price
-    if (!name || !slug || !description || !sku || isNaN(parsedPrice) || parsedPrice <= 0) {
+    const hasVariants = variants && variants.length > 0;
+    if (!name || !slug || !description || 
+        (!hasVariants && (!sku || isNaN(parsedPrice) || parsedPrice <= 0))) {
       return NextResponse.json({
-        message: 'Invalid or missing required fields. Price must be a positive number.'
+        message: 'Invalid or missing required fields. When not using variants, Price must be a positive number and SKU is required.'
       }, { status: 400 });
     }
 
@@ -118,6 +120,7 @@ export async function POST(req: NextRequest) {
       size: v.size,
       sku: v.sku,
       image: v.image,
+      images: Array.isArray(v.images) ? v.images : (v.image ? [v.image] : []),
       price: Number.isFinite(parseFloat(v.price)) ? parseFloat(v.price) : 0,
       salePrice: Number.isFinite(parseFloat(v.salePrice)) ? parseFloat(v.salePrice) : undefined,
       stock: Number.isFinite(parseInt(v.stock, 10)) ? parseInt(v.stock, 10) : 0,
